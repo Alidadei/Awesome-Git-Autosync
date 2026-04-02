@@ -153,6 +153,7 @@ crontab -e
 - Requires `git` to be in PATH
 - If behind a proxy, configure git proxy: `git config --global http.proxy http://127.0.0.1:PORT`
 - `repos.txt` and `git-auto-sync.log` are gitignored — they stay local
+- **This tool is designed for simple single-branch (main/master) projects only.** It is NOT suitable for projects with multiple branches, merge conflicts, or collaborative workflows requiring careful conflict resolution. If a rebase conflict occurs, the script will fail silently — you will need to resolve it manually.
 
 ---
 
@@ -305,3 +306,4 @@ crontab -e
 - 需要系统 PATH 中有 `git` 命令
 - 如果使用代理，需配置 git 代理：`git config --global http.proxy http://127.0.0.1:端口`
 - `repos.txt` 和 `git-auto-sync.log` 已加入 `.gitignore`，不会上传到 GitHub
+- **本工具仅适用于简单的单分支（main/master）项目。** 不适用于多分支开发、需要合并冲突处理或多人协作等复杂场景。如果发生 rebase 冲突，脚本会静默失败，需要手动解决冲突。
