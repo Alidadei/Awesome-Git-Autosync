@@ -70,11 +70,13 @@ cat git-auto-sync.log
 
 #### 4. Set up scheduled task
 
-**Windows** (every 10 minutes):
+**Windows** (every 10 minutes, runs silently in background):
 
 ```
-schtasks /create /sc minute /mo 10 /tn "GitAutoSync" /tr "C:\path\to\git-sync-script\git-auto-sync.bat"
+schtasks /create /sc minute /mo 10 /tn "GitAutoSync" /tr "wscript.exe \"C:\path\to\git-sync-script\git-auto-sync-silent.vbs\""
 ```
+
+> The VBS wrapper (`git-auto-sync-silent.vbs`) runs the batch script without showing a console window.
 
 **Linux / macOS** (every 10 minutes):
 
@@ -97,6 +99,20 @@ For each repo in `repos.txt`, the script runs:
 3. `git pull --rebase --autostash` — pull remote changes
 4. `git push` — push to remote
 
+### File Structure
+
+```
+git-sync-script/
+├── .gitignore
+├── README.md
+├── git-auto-sync.bat          # Windows sync script
+├── git-auto-sync.sh           # Linux/macOS sync script
+├── git-auto-sync-silent.vbs   # VBS wrapper to run .bat silently (Windows)
+├── repos.example.txt          # Example repo list
+├── repos.txt                  # Your repo list (gitignored)
+└── git-auto-sync.log          # Sync log (gitignored)
+```
+
 ### Maintenance
 
 - **Add repo** — add a line to `repos.txt`
@@ -116,7 +132,7 @@ schtasks /query /tn GitAutoSync
 schtasks /delete /tn GitAutoSync /f
 
 :: Recreate with 2-minute interval
-schtasks /create /sc minute /mo 2 /tn GitAutoSync /tr "C:\path\to\git-sync-script\git-auto-sync.bat"
+schtasks /create /sc minute /mo 2 /tn GitAutoSync /tr "wscript.exe \"C:\path\to\git-sync-script\git-auto-sync-silent.vbs\""
 ```
 
 **Linux / macOS:**
@@ -206,11 +222,13 @@ cat git-auto-sync.log
 
 #### 4. 设置定时任务
 
-**Windows**（每 10 分钟）：
+**Windows**（每 10 分钟，静默后台运行）：
 
 ```
-schtasks /create /sc minute /mo 10 /tn "GitAutoSync" /tr "C:\path\to\git-sync-script\git-auto-sync.bat"
+schtasks /create /sc minute /mo 10 /tn "GitAutoSync" /tr "wscript.exe \"C:\path\to\git-sync-script\git-auto-sync-silent.vbs\""
 ```
+
+> VBS 包装脚本（`git-auto-sync-silent.vbs`）会在后台静默运行批处理脚本，不会弹出命令行窗口。
 
 **Linux / macOS**（每 10 分钟）：
 
@@ -233,6 +251,20 @@ crontab -e
 3. `git pull --rebase --autostash` — 拉取远程更新并变基
 4. `git push` — 推送到远程
 
+### 文件结构
+
+```
+git-sync-script/
+├── .gitignore
+├── README.md
+├── git-auto-sync.bat          # Windows 同步脚本
+├── git-auto-sync.sh           # Linux/macOS 同步脚本
+├── git-auto-sync-silent.vbs   # VBS 包装脚本，静默运行 .bat（Windows）
+├── repos.example.txt          # 示例仓库列表
+├── repos.txt                  # 你的仓库列表（gitignored）
+└── git-auto-sync.log          # 同步日志（gitignored）
+```
+
 ### 日常维护
 
 - **添加仓库** — 在 `repos.txt` 中加一行路径
@@ -252,7 +284,7 @@ schtasks /query /tn GitAutoSync
 schtasks /delete /tn GitAutoSync /f
 
 :: 改为每 2 分钟同步一次
-schtasks /create /sc minute /mo 2 /tn GitAutoSync /tr "C:\path\to\git-sync-script\git-auto-sync.bat"
+schtasks /create /sc minute /mo 2 /tn GitAutoSync /tr "wscript.exe \"C:\path\to\git-sync-script\git-auto-sync-silent.vbs\""
 ```
 
 **Linux / macOS：**
