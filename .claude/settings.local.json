@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(cmd.exe /c 'schtasks /create /sc minute /mo 10 /tn \"GitAutoSync\" /tr \"wscript.exe \\\\\"R:\\\\Code\\\\MY project\\\\git-sync-script\\\\git-auto-sync-silent.vbs\\\\\"\"')"
+    ]
+  }
+}
