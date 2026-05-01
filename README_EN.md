@@ -31,19 +31,22 @@ Runs silently, automatically commits, pushes, and pulls on schedule. Once starte
 ## Directory Structure
 
 ```
-git-sync-script/
+awesome-git-autosync/
 ├── windows/
 │   ├── git-auto-sync-silent.ps1   # Silent sync launcher
 │   ├── git-auto-sync.bat          # Core sync script (no need to click directly)
-│   └── setup.bat                  # Click to register auto-start + begin syncing
+│   ├── setup.bat                  # Click to register auto-start + begin syncing
+│   └── stop.bat                   # Click to stop sync immediately
 ├── macos/
 │   ├── git-auto-sync-silent.sh    # macOS silent launcher
 │   ├── git-auto-sync.sh           # macOS core sync script
-│   └── setup.sh                   # Register crontab
+│   ├── setup.sh                   # Register auto-start + begin syncing
+│   └── stop.sh                    # Stop sync process
 ├── linux/
 │   ├── git-auto-sync-silent.sh    # Linux silent launcher
 │   ├── git-auto-sync.sh           # Linux core sync script
-│   └── setup.sh                   # Register crontab
+│   ├── setup.sh                   # Register auto-start + begin syncing
+│   └── stop.sh                    # Stop sync process
 |
 ├── config.txt                     # Sync interval configuration
 ├── repos.txt                      # Repo path list (auto-generated on first run)
@@ -109,6 +112,8 @@ cat git-auto-sync-recent.log
 > Adjust the retained cycles via `KEEP_RECENT=5` in `config.txt`.
 
 **Pause a repo:** Edit `repos.txt`, add `#` at the start of a line to pause, remove `#` to resume.
+
+**Stop sync:** Double-click `windows\stop.bat` to immediately stop the sync process. Run `setup.bat` again to resume.
 
 ## Sync Logic
 

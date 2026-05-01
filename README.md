@@ -40,12 +40,12 @@ git-sync-script/
 ├── macos/
 │   ├── git-auto-sync-silent.sh    # macOS 静默启动
 │   ├── git-auto-sync.sh           # macOS 同步核心
-│   ├── setup.sh                   # 注册 crontab
+│   ├── setup.sh                   # 一键注册开机自启 + 立即开始同步
 │   └── stop.sh                    # 停止同步进程
 ├── linux/
 │   ├── git-auto-sync-silent.sh    # Linux 静默启动
 │   ├── git-auto-sync.sh           # Linux 同步核心
-│   ├── setup.sh                   # 注册 crontab
+│   ├── setup.sh                   # 一键注册开机自启 + 立即开始同步
 │   └── stop.sh                    # 停止同步进程
 |
 ├── config.txt                     # 同步时间间隔配置
