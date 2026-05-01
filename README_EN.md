@@ -16,7 +16,7 @@ Runs silently, automatically commits, pushes, and pulls on schedule. Once starte
 
 - **Easy to maintain**
 
-  After starting sync, all you need is:
+  After starting sync the maintenance method is freaking easy:
 
   — Edit `INTERVAL` in `config.txt` to adjust sync interval (minutes), takes effect on the next cycle.
 
