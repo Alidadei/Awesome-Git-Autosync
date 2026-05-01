@@ -35,15 +35,18 @@ git-sync-script/
 ├── windows/
 │   ├── git-auto-sync-silent.ps1   # 静默启动同步
 │   ├── git-auto-sync.bat          # 同步核心脚本（无需直接点击）
-│   └── setup.bat                  # 点击/运行即可注册开机自启 + 立即开始同步
+│   ├── setup.bat                  # 点击/运行即可注册开机自启 + 立即开始同步
+│   └── stop.bat                   # 点击立即停止同步进程
 ├── macos/
 │   ├── git-auto-sync-silent.sh    # macOS 静默启动
 │   ├── git-auto-sync.sh           # macOS 同步核心
-│   └── setup.sh                   # 注册 crontab
+│   ├── setup.sh                   # 注册 crontab
+│   └── stop.sh                    # 停止同步进程
 ├── linux/
 │   ├── git-auto-sync-silent.sh    # Linux 静默启动
 │   ├── git-auto-sync.sh           # Linux 同步核心
-│   └── setup.sh                   # 注册 crontab
+│   ├── setup.sh                   # 注册 crontab
+│   └── stop.sh                    # 停止同步进程
 |
 ├── config.txt                     # 同步时间间隔配置
 ├── repos.txt                      # 仓库路径列表（首次运行自动生成）
@@ -119,6 +122,8 @@ cat git-auto-sync-recent.log
 > 保留轮数可在 `config.txt` 中通过 `KEEP_RECENT=5` 调整。
 
 **暂停某个仓库：** 编辑 `repos.txt`，在行首加 `#` 注释即可暂停，去掉 `#` 恢复。
+
+**停止同步：** 双击 `windows\stop.bat` 即可立即停止同步进程。需要恢复时再双击 `setup.bat`。
 
 ## 同步逻辑
 
