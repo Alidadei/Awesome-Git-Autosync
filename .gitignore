@@ -4,3 +4,5 @@ git-auto-sync-recent.log
 git-auto-sync.tmp
 git-auto-sync.lock
 CLAUDE.md
+git-auto-sync.tmp
+*.tmp
