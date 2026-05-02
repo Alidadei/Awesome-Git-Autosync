@@ -6,7 +6,7 @@ for %%I in ("%SCRIPT_DIR%..") do set "ROOT_DIR=%%~fI"
 set "REPO_LIST=%ROOT_DIR%\repos.txt"
 set "LOG_FILE=%ROOT_DIR%\git-auto-sync.log"
 set "RECENT_LOG=%ROOT_DIR%\git-auto-sync-recent.log"
-set "TMP_LOG=%ROOT_DIR%\git-auto-sync.tmp"
+set "TMP_LOG=%TEMP%\git-auto-sync.tmp"
 set "CONFIG_FILE=%ROOT_DIR%\config.txt"
 
 :: Prevent duplicate instances — count all cmd.exe running this script
