@@ -125,6 +125,8 @@ cat git-auto-sync-recent.log
 
 **停止同步：** 双击 `windows\stop.bat` 即可立即停止同步进程。需要恢复时再双击 `setup.bat`。
 
+> 重复运行 `setup` 会自动停掉旧实例并启动新的，无需先手动 `stop`。这在更新脚本后重启同步时特别方便。
+
 ## 同步逻辑
 
 每次触发时，对 `repos.txt` 中的每个仓库依次执行：

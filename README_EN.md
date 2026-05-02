@@ -115,6 +115,8 @@ cat git-auto-sync-recent.log
 
 **Stop sync:** Double-click `windows\stop.bat` to immediately stop the sync process. Run `setup.bat` again to resume.
 
+> Running `setup` again will automatically stop the old instance and start a new one — no need to manually `stop` first. This is especially handy for restarting after updating the scripts.
+
 ## Sync Logic
 
 For each repo in `repos.txt`, the script executes in order:
