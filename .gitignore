@@ -1,7 +1,6 @@
-repos.txt
-branches.txt
-git-auto-sync.log
-git-auto-sync-recent.log
+config/repos.txt
+config/branches.txt
+logs/
 git-auto-sync.lock
 *.tmp
 CLAUDE.md

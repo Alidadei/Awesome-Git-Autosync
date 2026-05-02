@@ -4,12 +4,12 @@ chcp 65001 >nul
 
 set "SCRIPT_DIR=%~dp0"
 for %%I in ("%SCRIPT_DIR%..") do set "ROOT_DIR=%%~fI"
-set "REPO_LIST=%ROOT_DIR%\repos.txt"
-set "BRANCHES_FILE=%ROOT_DIR%\branches.txt"
-set "LOG_FILE=%ROOT_DIR%\git-auto-sync.log"
-set "RECENT_LOG=%ROOT_DIR%\git-auto-sync-recent.log"
+set "REPO_LIST=%ROOT_DIR%\config\repos.txt"
+set "BRANCHES_FILE=%ROOT_DIR%\config\branches.txt"
+set "LOG_FILE=%ROOT_DIR%\logs\git-auto-sync.log"
+set "RECENT_LOG=%ROOT_DIR%\logs\git-auto-sync-recent.log"
 set "TMP_LOG=%TEMP%\git-auto-sync.tmp"
-set "CONFIG_FILE=%ROOT_DIR%\sync-settings.txt"
+set "CONFIG_FILE=%ROOT_DIR%\config\sync-settings.txt"
 
 :: Prevent duplicate instances — count all cmd.exe running this script
 powershell -NoProfile -Command "$n=(Get-WmiObject Win32_Process -Filter \"Name='cmd.exe' AND CommandLine LIKE '%%git-auto-sync.bat%%'\" | Measure-Object).Count; if($n -gt 1){exit 1}else{exit 0}"

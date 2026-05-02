@@ -52,10 +52,13 @@ git-sync-script/
 │   ├── setup.sh                   # 一键注册开机自启 + 立即开始同步
 │   └── stop.sh                    # 停止同步进程
 |
-├── sync-settings.txt                     # 同步时间间隔配置
-├── repos.txt                      # 仓库路径列表（首次运行自动生成）
-├── git-auto-sync.log              # 完整日志（保留所有历史）
-└── git-auto-sync-recent.log       # 轻量日志（仅保留最近几轮，方便调试）
+├── config/                        # 配置文件目录
+│   ├── sync-settings.txt          # 同步间隔等设置（首次运行自动生成）
+│   ├── repos.txt                  # 仓库路径列表（首次运行自动生成）
+│   └── branches.txt               # 分支配置（首次运行自动生成）
+├── logs/                          # 日志目录
+│   ├── git-auto-sync.log          # 完整日志（保留所有历史）
+│   └── git-auto-sync-recent.log   # 轻量日志（仅保留最近几轮，方便调试）
 ```
 
 ## 快速开始

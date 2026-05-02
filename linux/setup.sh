@@ -2,7 +2,7 @@
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 ROOT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
-REPO_LIST="$ROOT_DIR/repos.txt"
+REPO_LIST="$ROOT_DIR/config/repos.txt"
 SILENT_SCRIPT="$SCRIPT_DIR/git-auto-sync-silent.sh"
 
 echo "============================================"

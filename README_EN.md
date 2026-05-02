@@ -52,10 +52,13 @@ awesome-git-autosync/
 │   ├── setup.sh                   # Register auto-start + begin syncing
 │   └── stop.sh                    # Stop sync process
 |
-├── sync-settings.txt                     # Sync interval configuration
-├── repos.txt                      # Repo path list (auto-generated on first run)
-├── git-auto-sync.log              # Full log (all history)
-└── git-auto-sync-recent.log       # Recent log (last few cycles, for quick debugging)
+├── config/                        # Configuration directory
+│   ├── sync-settings.txt          # Sync settings (auto-generated on first run)
+│   ├── repos.txt                  # Repo path list (auto-generated on first run)
+│   └── branches.txt               # Branch config (auto-generated on first run)
+├── logs/                          # Log directory
+│   ├── git-auto-sync.log          # Full log (all history)
+│   └── git-auto-sync-recent.log   # Recent log (last few cycles, for quick debugging)
 ```
 
 ## Quick Start
