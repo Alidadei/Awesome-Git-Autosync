@@ -28,15 +28,11 @@ Runs silently, automatically commits, pushes, and pulls on schedule. Once starte
 
   — Running `setup` again automatically stops the old instance and starts a new one — no need to manually `stop` first. Especially handy for restarting after updating the scripts.
 
-  In `config/branches.txt`:
-
-  — Auto-generated on first sync with the repo's current branch as default, other branches listed as comments
-  — Uncomment a branch line to sync it; supports syncing multiple branches simultaneously
-  — Supports short repo names (e.g., `my-project` instead of full path)
+- **Multi-branch support** — Auto-generates `branches.txt` listing all local branches per repo. Defaults to the current branch; uncomment to switch or sync multiple branches simultaneously. Supports short repo names.
 
 - **Cross-platform** — Provides Windows / macOS / Linux scripts (currently only tested on Windows).
 
-- **Log management** — Provides a lightweight log (keeps the last few cycles, configurable) and a full log (keeps all history, may become large and slow to open over time). The recent log defaults to 5 cycles, adjustable via `sync-settings.txt`.
+- **Log management** — Provides a lightweight log (keeps the last few cycles, configurable) and a full log (keeps all history, may become large and slow to open over time). The recent log defaults to 5 cycles, adjustable via `config/sync-settings.txt`.
 
 ## Directory Structure
 
@@ -83,7 +79,7 @@ Double-click `windows/setup.bat`. It will automatically register auto-start on l
 
 **3. Configure repos**
 
-On first sync, `repos.txt` will be auto-created and opened in your editor. Add one repo absolute path per line:
+On first sync, `config/repos.txt` will be auto-created and opened in your editor. Add one repo absolute path per line:
 
 ```
 C:\Users\username\my-project
@@ -92,7 +88,7 @@ C:\Users\username\another-repo
 
 **4. Change sync interval**
 
-Edit `sync-settings.txt` in the root directory. Changes take effect on the next cycle:
+Edit `config/sync-settings.txt`. Changes take effect on the next cycle:
 
 ```
 INTERVAL=10
@@ -115,18 +111,18 @@ git clone https://github.com/Alidadei/awesome-git-autosync.git && cd git-sync-sc
 **View logs:**
 
 ```
-cat git-auto-sync-recent.log
+cat logs/git-auto-sync-recent.log
 ```
 
 > Two-level log management for easy debugging:
-> - `git-auto-sync-recent.log` — Lightweight log, keeps only the last 5 sync cycles. Recommended for daily use.
-> - `git-auto-sync.log` — Full log, keeps all history. For deep troubleshooting.
+> - `logs/git-auto-sync-recent.log` — Lightweight log, keeps only the last 5 sync cycles. Recommended for daily use.
+> - `logs/git-auto-sync.log` — Full log, keeps all history. For deep troubleshooting.
 >
-> Adjust the retained cycles via `KEEP_RECENT=5` in `sync-settings.txt`.
+> Adjust the retained cycles via `KEEP_RECENT=5` in `config/sync-settings.txt`.
 
 ## Sync Logic
 
-For each repo in `repos.txt`, the script runs the following for each branch configured in `branches.txt`:
+For each repo in `config/repos.txt`, the script runs the following for each branch configured in `config/branches.txt`:
 
 1. `git checkout <branch>` (switch to target branch)
 2. `git add -A`
@@ -134,7 +130,7 @@ For each repo in `repos.txt`, the script runs the following for each branch conf
 4. `git pull --rebase --autostash`
 5. `git push`
 
-> `branches.txt` is auto-generated on first run. Example:
+> `config/branches.txt` is auto-generated on first run. Example:
 > ```
 > # my-project ：main；dev；feature-x
 > my-project main

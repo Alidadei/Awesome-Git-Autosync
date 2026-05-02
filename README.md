@@ -26,17 +26,19 @@
 
   — 编辑 `repos.txt` 中的仓库路径即可调整同步仓库，路径前加 `#` 可暂停同步该仓库，但又保留仓库的地址以便随时开启同步！
 
+  在 `config/branches.txt`：
+
+  — 首次同步自动生成分支配置，默认同步仓库的当前分支，其他分支以注释形式列出
+  — 取消注释即可同步该分支，支持同时同步多个分支
+  — 支持仓库名简写（如 `my-project` 代替完整路径）
+
   在具体的平台文件夹：
 
   — 双击 `stop` 脚本即可立即停止同步进程，需要恢复时再双击 `setup`
 
   — 重复运行 `setup` 会自动停掉旧实例并启动新的，无需先手动 `stop`。这在更新脚本后重启同步时特别方便
 
-  在 `config/branches.txt`：
-
-  — 首次同步自动生成分支配置，默认同步仓库的当前分支，其他分支以注释形式列出
-  — 取消注释即可同步该分支，支持同时同步多个分支
-  — 支持仓库名简写（如 `my-project` 代替完整路径）
+- **多分支支持** — 首次同步自动生成 `branches.txt`，列出每个仓库的所有本地分支。默认同步当前分支，取消注释即可切换或同时同步多个分支，支持仓库名简写
 
 - **跨平台** — 提供 Windows / macOS / Linux 三套脚本（但是当前仅 Windows 平台测试）
 
@@ -87,7 +89,7 @@ git clone https://github.com/Alidadei/awesome-git-autosync.git
 
 **3. 配置同步仓库**
 
-首次同步会自动创建 `repos.txt` 并打开编辑器，每行填写一个仓库的绝对路径，例如：
+首次同步会自动创建 `config/repos.txt` 并打开编辑器，每行填写一个仓库的绝对路径，例如：
 
 ```
 C:\Users\username\my-project
@@ -96,7 +98,7 @@ C:\Users\username\another-repo
 
 **4. 修改同步间隔**
 
-编辑根目录下的 `sync-settings.txt`，修改数字即可，下一轮自动生效，如：
+编辑 `config/sync-settings.txt`，修改数字即可，下一轮自动生效，如：
 
 ```
 INTERVAL=10
@@ -104,7 +106,7 @@ INTERVAL=10
 
 **5. 修改轻量日志保存的轮次**
 
-编辑根目录下的 `sync-settings.txt`，修改数字即可，下一轮自动生效，如：
+编辑 `config/sync-settings.txt`，修改数字即可，下一轮自动生效，如：
 
 ```
 KEEP_RECENT=5
@@ -129,18 +131,18 @@ git clone https://github.com/Alidadei/awesome-git-autosync.git && cd git-sync-sc
 **查看日志：**
 
 ```
-cat git-auto-sync-recent.log
+cat logs/git-auto-sync-recent.log
 ```
 
 > 项目提供两级日志管理，方便开发者调试：
-> - `git-auto-sync-recent.log` — 轻量日志，仅保留最近 5 轮同步记录，推荐日常查看
-> - `git-auto-sync.log` — 完整日志，保留所有历史记录，用于深度排查
+> - `logs/git-auto-sync-recent.log` — 轻量日志，仅保留最近 5 轮同步记录，推荐日常查看
+> - `logs/git-auto-sync.log` — 完整日志，保留所有历史记录，用于深度排查
 >
-> 保留轮数可在 `sync-settings.txt` 中通过 `KEEP_RECENT=5` 调整。
+> 保留轮数可在 `config/sync-settings.txt` 中通过 `KEEP_RECENT=5` 调整。
 
 ## 同步逻辑
 
-每次触发时，对 `repos.txt` 中的每个仓库，按 `branches.txt` 配置的分支依次执行：
+每次触发时，对 `config/repos.txt` 中的每个仓库，按 `config/branches.txt` 配置的分支依次执行：
 
 1. `git checkout <branch>`（切换到目标分支）
 2. `git add -A`
@@ -148,7 +150,7 @@ cat git-auto-sync-recent.log
 4. `git pull --rebase --autostash`
 5. `git push`
 
-> `branches.txt` 首次运行自动生成，格式示例：
+> `config/branches.txt` 首次运行自动生成，格式示例：
 > ```
 > # YHL.github.io ：master；astro-v2
 > YHL.github.io master
