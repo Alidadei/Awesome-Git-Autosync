@@ -38,11 +38,19 @@ EOF
     if command -v notify-send &>/dev/null; then
         notify-send "Git Auto Sync" "Please fill in repo paths in repos.txt"
     fi
-    exit 0
+    # Wait for repos.txt to be filled (up to 5 minutes)
+    _waited=0
+    while [ $_waited -lt 300 ]; do
+        sleep 5
+        _waited=$((_waited + 5))
+        if grep -vE '^(#.*|[[:space:]]*)$' "$REPO_LIST" | grep -q . 2>/dev/null; then
+            break
+        fi
+    done
 fi
 
-# Auto-generate branches.txt if missing
-if [ ! -f "$BRANCHES_FILE" ]; then
+# Function to generate branches.txt
+generate_branches_file() {
     {
         echo "# 分支配置 / Branch configuration for Git Auto Sync"
         echo "# 每行格式：仓库名 分支名。默认同步 master"
@@ -77,8 +85,8 @@ if [ ! -f "$BRANCHES_FILE" ]; then
     if command -v notify-send &>/dev/null; then
         notify-send "Git Auto Sync" "Please review branch settings in branches.txt"
     fi
-    exit 0
-fi
+    sleep 30
+}
 
 # Main loop
 while true; do
@@ -86,6 +94,11 @@ while true; do
     INTERVAL=${INTERVAL:-10}
     KEEP_RECENT=$(grep "^KEEP_RECENT=" "$CONFIG_FILE" 2>/dev/null | cut -d'=' -f2)
     KEEP_RECENT=${KEEP_RECENT:-5}
+
+    # Auto-generate branches.txt if needed
+    if [ ! -f "$BRANCHES_FILE" ] && grep -vE '^(#.*|[[:space:]]*)$' "$REPO_LIST" | grep -q . 2>/dev/null; then
+        generate_branches_file
+    fi
 
     > "$TMP_LOG"
 

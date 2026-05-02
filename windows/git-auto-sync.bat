@@ -17,7 +17,7 @@ if errorlevel 1 exit /b 0
 
 :: Auto-create repos.txt if missing
 if not exist "%REPO_LIST%" goto :create_repos
-goto :check_branches
+goto :main_loop
 
 :create_repos
 echo # 每行填写一个git仓库的绝对路径 / Put one git repo absolute path per line> "%REPO_LIST%"
@@ -26,15 +26,7 @@ echo # 示例 / Example:>> "%REPO_LIST%"
 echo # C:\Users\username\my-project>> "%REPO_LIST%"
 echo # ===========================================================================================================>> "%REPO_LIST%"
 echo.>> "%REPO_LIST%"
-start notepad "%REPO_LIST%"
-echo Set ws = CreateObject("WScript.Shell")> "%TEMP%\git-sync-prompt.vbs"
-echo ws.Popup "repos.txt created. Please fill in your repo paths, then run sync again.", 0, "Git Auto Sync", 64>> "%TEMP%\git-sync-prompt.vbs"
-cscript //nologo "%TEMP%\git-sync-prompt.vbs"
-del "%TEMP%\git-sync-prompt.vbs" >nul 2>&1
-exit /b 0
-
-:check_branches
-if not exist "%BRANCHES_FILE%" goto :generate_branches
+start /wait notepad "%REPO_LIST%"
 goto :main_loop
 
 :generate_branches
@@ -44,12 +36,8 @@ echo # 切换分支：注释当前行，取消注释目标行（每个仓库仅�
 echo # ===========================================================================================================>> "%BRANCHES_FILE%"
 echo.>> "%BRANCHES_FILE%"
 for /f "usebackq tokens=* delims=" %%R in ("%REPO_LIST%") do call :gen_branch_line "%%R"
-start notepad "%BRANCHES_FILE%"
-echo Set ws = CreateObject("WScript.Shell")> "%TEMP%\git-sync-prompt.vbs"
-echo ws.Popup "branches.txt created. Please review branch settings, then run sync again.", 0, "Git Auto Sync", 64>> "%TEMP%\git-sync-prompt.vbs"
-cscript //nologo "%TEMP%\git-sync-prompt.vbs"
-del "%TEMP%\git-sync-prompt.vbs" >nul 2>&1
-exit /b 0
+start /wait notepad "%BRANCHES_FILE%"
+goto :main_loop
 
 :gen_branch_line
 set "GP=%~1"
@@ -99,6 +87,14 @@ set "KEEP_RECENT=5"
 for /f "tokens=2 delims==" %%a in ('findstr /b "INTERVAL=" "%CONFIG_FILE%"') do set "INTERVAL=%%a"
 for /f "tokens=2 delims==" %%a in ('findstr /b "KEEP_RECENT=" "%CONFIG_FILE%"') do set "KEEP_RECENT=%%a"
 set /a INTERVAL_S=INTERVAL*60
+
+:: Auto-generate branches.txt if needed
+if exist "%BRANCHES_FILE%" goto :skip_gen_branches
+set "HAS_REPOS="
+for /f "tokens=* delims=" %%R in ('findstr /v /b /c:"#" "%REPO_LIST%"') do set "HAS_REPOS=1"
+if not "!HAS_REPOS!"=="1" goto :skip_gen_branches
+goto :generate_branches
+:skip_gen_branches
 
 :: Truncate temp file
 echo. > "%TMP_LOG%" 2>nul

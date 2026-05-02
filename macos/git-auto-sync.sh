@@ -34,13 +34,12 @@ if [ ! -f "$REPO_LIST" ]; then
 # ===========================================================================================================
 
 EOF
-    open -t "$REPO_LIST"
     osascript -e 'display notification "Please fill in repo paths in repos.txt" with title "Git Auto Sync"'
-    exit 0
+    open -W -t "$REPO_LIST"
 fi
 
-# Auto-generate branches.txt if missing
-if [ ! -f "$BRANCHES_FILE" ]; then
+# Function to generate branches.txt
+generate_branches_file() {
     {
         echo "# 分支配置 / Branch configuration for Git Auto Sync"
         echo "# 每行格式：仓库名 分支名。默认同步 master"
@@ -71,10 +70,9 @@ if [ ! -f "$BRANCHES_FILE" ]; then
             cd "$ROOT_DIR"
         done < "$REPO_LIST"
     } > "$BRANCHES_FILE"
-    open -t "$BRANCHES_FILE"
     osascript -e 'display notification "Please review branch settings in branches.txt" with title "Git Auto Sync"'
-    exit 0
-fi
+    open -W -t "$BRANCHES_FILE"
+}
 
 # Main loop
 while true; do
@@ -82,6 +80,11 @@ while true; do
     INTERVAL=${INTERVAL:-10}
     KEEP_RECENT=$(grep "^KEEP_RECENT=" "$CONFIG_FILE" 2>/dev/null | cut -d'=' -f2)
     KEEP_RECENT=${KEEP_RECENT:-5}
+
+    # Auto-generate branches.txt if needed
+    if [ ! -f "$BRANCHES_FILE" ] && grep -vE '^(#.*|[[:space:]]*)$' "$REPO_LIST" | grep -q . 2>/dev/null; then
+        generate_branches_file
+    fi
 
     > "$TMP_LOG"
 
