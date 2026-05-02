@@ -3,6 +3,7 @@
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 ROOT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 REPO_LIST="$ROOT_DIR/repos.txt"
+BRANCHES_FILE="$ROOT_DIR/branches.txt"
 LOG_FILE="$ROOT_DIR/git-auto-sync.log"
 RECENT_LOG="$ROOT_DIR/git-auto-sync-recent.log"
 CONFIG_FILE="$ROOT_DIR/config.txt"
@@ -38,6 +39,43 @@ EOF
     exit 0
 fi
 
+# Auto-generate branches.txt if missing
+if [ ! -f "$BRANCHES_FILE" ]; then
+    {
+        echo "# 分支配置 / Branch configuration for Git Auto Sync"
+        echo "# 每行格式：仓库名 分支名。默认同步 master"
+        echo "# 切换分支：注释当前行，取消注释目标行"
+        echo "# ==========================================================================================================="
+        echo ""
+        while IFS= read -r repo || [ -n "$repo" ]; do
+            repo=$(echo "$repo" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+            [ -z "$repo" ] && continue
+            [[ "$repo" == \#* ]] && continue
+            [ ! -d "$repo/.git" ] && continue
+            short=$(basename "$repo")
+            cd "$repo" || continue
+            default_branch=$(git symbolic-ref --short HEAD 2>/dev/null || echo "master")
+            branches=()
+            while IFS= read -r br; do
+                branches+=("$br")
+            done < <(git branch --format='%(refname:short)' 2>/dev/null)
+            blist=$(IFS='；'; echo "${branches[*]}")
+            echo "# $short ：$blist"
+            echo "$short $default_branch"
+            for br in "${branches[@]}"; do
+                if [ "$br" != "$default_branch" ]; then
+                    echo "#$short $br"
+                fi
+            done
+            echo ""
+            cd "$ROOT_DIR"
+        done < "$REPO_LIST"
+    } > "$BRANCHES_FILE"
+    open -t "$BRANCHES_FILE"
+    osascript -e 'display notification "Please review branch settings in branches.txt" with title "Git Auto Sync"'
+    exit 0
+fi
+
 # Main loop
 while true; do
     INTERVAL=$(grep "^INTERVAL=" "$CONFIG_FILE" 2>/dev/null | cut -d'=' -f2)
@@ -47,7 +85,7 @@ while true; do
 
     > "$TMP_LOG"
 
-    log "=== Sync started ==="
+    log "============================ Sync started ==="
 
     while IFS= read -r line || [ -n "$line" ]; do
         line=$(echo "$line" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
@@ -59,29 +97,53 @@ while true; do
             continue
         fi
 
-        log "Syncing: $line"
+        log "Syncing: $line ==="
         cd "$line" || continue
 
-        git add -A 2>> "$TMP_LOG"
-
-        if ! git diff --cached --quiet 2>/dev/null; then
-            git commit -m "auto sync $(date '+%Y-%m-%d %H:%M')" >> "$TMP_LOG" 2>&1
-            log "  Committed"
-        else
-            log "  Nothing to commit"
+        # Collect target branches
+        SHORT=$(basename "$line")
+        BRANCHES=()
+        if [ -f "$BRANCHES_FILE" ]; then
+            while IFS= read -r entry; do
+                br=$(echo "$entry" | awk '{print $2}')
+                [ -n "$br" ] && BRANCHES+=("$br")
+            done < <(grep -E "^($(printf '%s' "$line" | sed 's/[.[\*^$()+?{|\\]/\\&/g')|$(printf '%s' "$SHORT" | sed 's/[.[\*^$()+?{|\\]/\\&/g')) " "$BRANCHES_FILE" 2>/dev/null)
         fi
+        [ ${#BRANCHES[@]} -eq 0 ] && BRANCHES=("$(git symbolic-ref --short HEAD 2>/dev/null || echo master)")
 
-        git pull --rebase --autostash >> "$TMP_LOG" 2>&1
+        for TARGET_BRANCH in "${BRANCHES[@]}"; do
+            CURRENT_BRANCH=$(git symbolic-ref --short HEAD 2>/dev/null)
+            if [ "$TARGET_BRANCH" != "$CURRENT_BRANCH" ]; then
+                if ! git checkout "$TARGET_BRANCH" >> "$TMP_LOG" 2>&1; then
+                    log "  [$TARGET_BRANCH] ERROR: checkout failed"
+                    continue
+                fi
+                log "  [$TARGET_BRANCH] Switched"
+            else
+                log "  [$TARGET_BRANCH]"
+            fi
 
-        if git push >> "$TMP_LOG" 2>&1; then
-            log "  Pushed"
-        else
-            log "  ERROR: Push failed"
-        fi
+            git add -A 2>> "$TMP_LOG"
+
+            if ! git diff --cached --quiet 2>/dev/null; then
+                git commit -m "auto sync $(date '+%Y-%m-%d %H:%M')" >> "$TMP_LOG" 2>&1
+                log "  [$TARGET_BRANCH] Committed"
+            else
+                log "  [$TARGET_BRANCH] Nothing to commit"
+            fi
+
+            git pull --rebase --autostash >> "$TMP_LOG" 2>&1
+
+            if git push >> "$TMP_LOG" 2>&1; then
+                log "  [$TARGET_BRANCH] Pushed"
+            else
+                log "  [$TARGET_BRANCH] ERROR: Push failed"
+            fi
+        done
 
     done < "$REPO_LIST"
 
-    log "=== Sync finished ==="
+    log "============================ Sync finished ==="
     log "Next sync in $INTERVAL minutes"
 
     # Prepend to main log (full history)

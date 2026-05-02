@@ -1,9 +1,11 @@
 @echo off
+setlocal enabledelayedexpansion
 chcp 65001 >nul
 
 set "SCRIPT_DIR=%~dp0"
 for %%I in ("%SCRIPT_DIR%..") do set "ROOT_DIR=%%~fI"
 set "REPO_LIST=%ROOT_DIR%\repos.txt"
+set "BRANCHES_FILE=%ROOT_DIR%\branches.txt"
 set "LOG_FILE=%ROOT_DIR%\git-auto-sync.log"
 set "RECENT_LOG=%ROOT_DIR%\git-auto-sync-recent.log"
 set "TMP_LOG=%TEMP%\git-auto-sync.tmp"
@@ -15,7 +17,7 @@ if errorlevel 1 exit /b 0
 
 :: Auto-create repos.txt if missing
 if not exist "%REPO_LIST%" goto :create_repos
-goto :main_loop
+goto :check_branches
 
 :create_repos
 echo # 每行填写一个git仓库的绝对路径 / Put one git repo absolute path per line> "%REPO_LIST%"
@@ -31,6 +33,65 @@ cscript //nologo "%TEMP%\git-sync-prompt.vbs"
 del "%TEMP%\git-sync-prompt.vbs" >nul 2>&1
 exit /b 0
 
+:check_branches
+if not exist "%BRANCHES_FILE%" goto :generate_branches
+goto :main_loop
+
+:generate_branches
+echo # 分支配置 / Branch configuration for Git Auto Sync> "%BRANCHES_FILE%"
+echo # 每行格式：仓库名 分支名。默认同步 master>> "%BRANCHES_FILE%"
+echo # 切换分支：注释当前行，取消注释目标行（每个仓库仅一行生效）>> "%BRANCHES_FILE%"
+echo # ===========================================================================================================>> "%BRANCHES_FILE%"
+echo.>> "%BRANCHES_FILE%"
+for /f "usebackq tokens=* delims=" %%R in ("%REPO_LIST%") do call :gen_branch_line "%%R"
+start notepad "%BRANCHES_FILE%"
+echo Set ws = CreateObject("WScript.Shell")> "%TEMP%\git-sync-prompt.vbs"
+echo ws.Popup "branches.txt created. Please review branch settings, then run sync again.", 0, "Git Auto Sync", 64>> "%TEMP%\git-sync-prompt.vbs"
+cscript //nologo "%TEMP%\git-sync-prompt.vbs"
+del "%TEMP%\git-sync-prompt.vbs" >nul 2>&1
+exit /b 0
+
+:gen_branch_line
+set "GP=%~1"
+if "%GP%"=="" goto :eof
+echo %GP% | findstr /b "#" >nul
+if not errorlevel 1 goto :eof
+if not exist "%GP%\.git" goto :eof
+for %%I in ("%GP%.") do set "GP_SHORT=%%~nxI"
+pushd "%GP%"
+
+:: Build header: # repo_name ：branch1；branch2
+set "BLIST="
+for /f "tokens=1,2" %%a in ('git branch --list 2^>nul') do call :add_branch "%%a" "%%b"
+echo # %GP_SHORT% ：%BLIST%>> "%BRANCHES_FILE%"
+
+:: Detect default branch
+for /f "tokens=*" %%b in ('git symbolic-ref --short HEAD 2^>nul') do set "DEFAULT_BRANCH=%%b"
+if "%DEFAULT_BRANCH%"=="" set "DEFAULT_BRANCH=master"
+
+:: Active branch (detected default)
+echo %GP_SHORT% %DEFAULT_BRANCH%>> "%BRANCHES_FILE%"
+
+:: Other branches as commented
+for /f "tokens=1,2" %%a in ('git branch --list 2^>nul') do (
+    if "%%a"=="*" (
+        if /i not "%%b"=="%DEFAULT_BRANCH%" echo #%GP_SHORT% %%b>> "%BRANCHES_FILE%"
+    ) else (
+        if /i not "%%a"=="%DEFAULT_BRANCH%" echo #%GP_SHORT% %%a>> "%BRANCHES_FILE%"
+    )
+)
+echo.>> "%BRANCHES_FILE%"
+popd
+goto :eof
+
+:add_branch
+if "%~1"=="*" (
+    set "BLIST=%BLIST%%~2；"
+) else (
+    set "BLIST=%BLIST%%~1；"
+)
+goto :eof
+
 :main_loop
 :: Read config (re-read every cycle)
 set "INTERVAL=10"
@@ -42,7 +103,7 @@ set /a INTERVAL_S=INTERVAL*60
 :: Truncate temp file
 echo. > "%TMP_LOG%" 2>nul
 
-call :log "=== Sync started ==="
+call :log "============================ Sync started ==="
 
 if not exist "%REPO_LIST%" (
     call :log "ERROR repos.txt not found"
@@ -54,7 +115,7 @@ for /f "usebackq tokens=* delims=" %%R in ("%REPO_LIST%") do (
 )
 
 :sync_done
-call :log "=== Sync finished ==="
+call :log "============================ Sync finished ==="
 call :log "Next sync in %INTERVAL% minutes"
 
 :: Prepend new log to main log (full history), with UTF-8 BOM
@@ -96,28 +157,64 @@ if not exist "%REPO%\.git" (
     goto :eof
 )
 
-call :log "Syncing %REPO%"
+call :log "Syncing %REPO% ==="
 
 pushd "%REPO%"
+
+:: Collect target branches
+for %%I in ("%REPO%.") do set "REPO_SHORT=%%~nxI"
+set "BRANCH_FOUND=0"
+if exist "%BRANCHES_FILE%" (
+    for /f "tokens=1,2" %%a in ('findstr /b /l /c:"%REPO_SHORT% " "%BRANCHES_FILE%" 2^>nul') do (
+        if not "%%b"=="" call :do_sync "%%b"&set "BRANCH_FOUND=1"
+    )
+    for /f "tokens=1,2" %%a in ('findstr /b /l /c:"%REPO% " "%BRANCHES_FILE%" 2^>nul') do (
+        if not "%%b"=="" call :do_sync "%%b"&set "BRANCH_FOUND=1"
+    )
+)
+if "!BRANCH_FOUND!"=="0" (
+    for /f "tokens=*" %%b in ('git symbolic-ref --short HEAD 2^>nul') do (
+        call :do_sync "%%b"
+        set "BRANCH_FOUND=1"
+    )
+)
+if "!BRANCH_FOUND!"=="0" call :do_sync "master"
+
+popd
+goto :eof
+
+:do_sync
+set "BRANCH=%~1"
+
+:: Branch checkout
+for /f "tokens=*" %%b in ('git symbolic-ref --short HEAD 2^>nul') do set "CURRENT_BRANCH=%%b"
+if not "%BRANCH%"=="%CURRENT_BRANCH%" (
+    git checkout "%BRANCH%" >> "%TMP_LOG%" 2>&1
+    if errorlevel 1 (
+        call :log "  [%BRANCH%] ERROR checkout failed"
+        goto :eof
+    )
+    call :log "  [%BRANCH%] Switched"
+) else (
+    call :log "  [%BRANCH%]"
+)
 
 git add -A 2>> "%TMP_LOG%"
 
 git diff --cached --quiet 2>nul
 if errorlevel 1 (
     git commit -m "auto sync %date:/=-% %time:~0,5%" >> "%TMP_LOG%" 2>&1
-    call :log "  Committed"
+    call :log "  [%BRANCH%] Committed"
 ) else (
-    call :log "  Nothing to commit"
+    call :log "  [%BRANCH%] Nothing to commit"
 )
 
 git pull --rebase --autostash >> "%TMP_LOG%" 2>&1
 
 git push >> "%TMP_LOG%" 2>&1
 if errorlevel 1 (
-    call :log "  ERROR Push failed"
+    call :log "  [%BRANCH%] ERROR Push failed"
 ) else (
-    call :log "  Pushed"
+    call :log "  [%BRANCH%] Pushed"
 )
-
-popd
 goto :eof

@@ -13,23 +13,27 @@
 **文件格式：**
 
 ```
-# 每行格式：仓库路径 分支名
-# 不写分支名则默认同步 master
-# 以 # 开头的行为注释
+# 分支配置 / Branch configuration for Git Auto Sync
+# 每行格式：仓库名 分支名。默认同步 master
+# 切换分支：注释当前行，取消注释目标行
 # ===========================================================================================================
 
-# Available: main, dev, feature-x
-C:\Users\y\Desktop\my-project main
+# YHL.github.io ：master；astro-v2
+YHL.github.io master
+#YHL.github.io astro-v2
 
-# Available: master
-C:\Users\y\Desktop\another-repo
+# my-project ：main；dev；feature-x
+my-project master
+#my-project dev
+#my-project feature-x
 ```
 
 **要点：**
-- 每行 = 仓库路径 + 可选分支名，空格分隔
-- 不写分支名 → 默认同步 `master`
-- 注释中列出所有可用分支供参考
-- 首次自动生成时，默认填入 `master`
+- 用仓库名（文件夹名）匹配，简短易读
+- 第一行注释列出所有可用分支
+- 未注释的行为当前生效分支，其余注释掉
+- 切换分支：注释当前行 → 取消注释目标行
+- 首次自动生成时，默认生效 `master`
 
 ---
 
@@ -40,10 +44,10 @@ C:\Users\y\Desktop\another-repo
 ```
 1. 遍历 repos.txt 中每个有效仓库
 2. 执行 git branch 获取本地分支列表
-3. 默认填入 `master` 分支（最稳定）
+3. 默认填入 `master` 分支（最稳定），其他分支以注释形式列出
 4. 生成 branches.txt：
-   - 注释列出所有可用分支
-   - 填入 `master` 作为默认
+   - 仅 master 分支生效
+   - 其他分支注释掉，用户取消注释即可启用
 5. 打开编辑器让用户修改
 6. 退出本轮同步，等用户编辑完后下一轮自动生效
 ```
@@ -52,18 +56,20 @@ C:\Users\y\Desktop\another-repo
 
 ```
 # Branch configuration for Git Auto Sync
-# Edit branch names as needed, save and close.
-# Remove branch name to sync current branch.
+# Uncomment a branch to sync it. Only one branch per repo.
 # ===========================================================================================================
 
-# Available: main, dev, feature-x
-C:\Users\y\Desktop\my-project main
+# C:\Users\y\Desktop\my-project
+#   Available: main, dev, feature-x
+C:\Users\y\Desktop\my-project master
 
-# Available: master, develop
+# C:\Users\y\Desktop\another-repo
+#   Available: master, develop
 C:\Users\y\Desktop\another-repo master
 
-# Available: main
-C:\Users\y\Desktop\single-branch-repo
+# C:\Users\y\Desktop\single-branch-repo
+#   Available: main
+C:\Users\y\Desktop\single-branch-repo master
 ```
 
 ---
