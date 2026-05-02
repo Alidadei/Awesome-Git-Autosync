@@ -30,4 +30,23 @@ echo "${EXISTING}"$'\n'"@reboot \"$SILENT_SCRIPT\"" | crontab -
 echo "[OK] Auto-start on boot registered!"
 echo "     The sync script will start automatically on login."
 echo ""
+
+# Kill old sync instance if running
+LOCK_FILE="$ROOT_DIR/git-auto-sync.lock"
+if [ -f "$LOCK_FILE" ]; then
+    OLD_PID=$(cat "$LOCK_FILE" 2>/dev/null)
+    if kill -0 "$OLD_PID" 2>/dev/null; then
+        kill "$OLD_PID" 2>/dev/null
+        rm -f "$LOCK_FILE"
+        echo "[OK] Old sync instance stopped."
+    else
+        rm -f "$LOCK_FILE"
+    fi
+fi
+
+# Start sync now
+nohup "$SILENT_SCRIPT" > /dev/null 2>&1 &
+disown
+echo "[OK] Sync started in background."
+echo ""
 echo "     To change interval: just edit config.txt, it takes effect on the next cycle."

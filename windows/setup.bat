@@ -22,6 +22,9 @@ if %errorlevel% equ 0 (
     echo        Try right-click setup.bat and "Run as administrator".
 )
 
+:: Kill old sync instance if running
+powershell -NoProfile -Command "Get-WmiObject Win32_Process -Filter \"Name='cmd.exe' AND CommandLine LIKE '%%git-auto-sync%%'\" | ForEach-Object { Stop-Process -Id $_.ProcessId -Force }" 2>nul
+
 :: Start sync now
 start "" powershell.exe -WindowStyle Hidden -ExecutionPolicy Bypass -File "%PS1_PATH%"
 echo [OK] Sync started in background.
