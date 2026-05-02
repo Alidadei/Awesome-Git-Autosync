@@ -1,0 +1,8 @@
+# Git Auto Sync Configuration
+# Sync INTERVAL in minutes
+# 以下数字能修改自动同步的间隔，单位：分钟
+INTERVAL=10
+
+# Number of recent sync cycles to keep in recent log
+# 最近几轮同步记录保留在轻量日志中
+KEEP_RECENT=10

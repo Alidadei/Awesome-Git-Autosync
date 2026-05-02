@@ -1,309 +1,158 @@
-# Git Auto Sync Script
+# Git Auto Sync
 
-[English](#english) | [中文](#中文)
+**[English](README_EN.md)** | **中文**
 
----
+还在为个人多台电脑上的仓库同步而苦恼吗？快来试试这个好用的工具！
 
-<a id="english"></a>
+这是一个极轻量化的 Git 仓库自动同步工具，system script + txt is all your need! 无需额外安装或依赖任何软件。 
 
-## English
+全程静默运行，定时自动 commit + push + pull，启动之后无需任何手动操作，让你在多台电脑上的仓库永远 up to date！
 
-A simple script to automatically sync multiple local Git repositories. Supports **Windows**, **Linux**, and **macOS**. Runs as a scheduled task / cron job every N minutes to commit, pull, and push changes.
+## 特点
 
-> **Tested on Windows.** Linux and macOS scripts are provided but have not been tested yet.
+- **一键启动、开箱即用** — 双击setup脚本 即可静默运行；
 
-### Quick Start
+- **极轻量** — 核心脚本仅 ~4KB，无任何依赖，纯系统原生脚本，CPU/内存占用几乎为零
 
-#### 1. Clone this repo
+- **极易维护** 
 
-```
-git clone https://github.com/Alidadei/git-sync-script.git
-```
+  开启同步后维护方式非常简单：
 
-#### 2. Configure repos
+  — 编辑 `config.txt` 中的INTERVAL值即可调整同步的间隔（分钟），下一次同步自动生效
 
-Copy the example file and add your repo paths:
+  — 编辑 `config.txt` 中的KEEP_RECENT值即可调整轻量化日志保留的轮次数量，下一次同步自动生效
 
-```bash
-# Windows
-copy repos.example.txt repos.txt
+  — 编辑 `repos.txt` 中的仓库路径即可调整同步仓库，路径前加 ‘#’ 可暂停同步该仓库，但又保留仓库的地址以便随时开启同步！
 
-# Linux / macOS
-cp repos.example.txt repos.txt
-```
+- **跨平台** — 提供 Windows / macOS / Linux 三套脚本（但是当前仅 Windows 平台测试）
 
-Edit `repos.txt`, one repo path per line:
+- **日志管理** — 提供轻量日志（仅保留最近几轮，具体轮次可自由配置）和完整日志（保留全部历史，时间久了会冗长，打开时可能会卡）两个版本，轻量日志默认保留最近 5 轮同步记录，可在 `config.txt` 中调整。
 
-```
-# Windows
-C:\Users\you\project-a
-C:\Users\you\project-b
-
-# Linux / macOS
-/home/you/project-a
-/Users/you/project-b
-
-# Lines starting with # are ignored
-# C:\Users\you\paused-project
-```
-
-#### 3. Test manually
-
-```bash
-# Windows
-git-auto-sync.bat
-
-# Linux / macOS
-chmod +x git-auto-sync.sh
-./git-auto-sync.sh
-```
-
-Check the log:
-
-```bash
-# Windows
-type git-auto-sync.log
-
-# Linux / macOS
-cat git-auto-sync.log
-```
-
-#### 4. Set up scheduled task
-
-**Windows** (every 10 minutes, runs silently in background):
-
-```
-schtasks /create /sc minute /mo 10 /tn "GitAutoSync" /tr "wscript.exe \"C:\path\to\git-sync-script\git-auto-sync-silent.vbs\""
-```
-
-> The VBS wrapper (`git-auto-sync-silent.vbs`) runs the batch script without showing a console window.
-
-**Linux / macOS** (every 10 minutes):
-
-```bash
-crontab -e
-```
-
-Add this line:
-
-```
-*/10 * * * * /path/to/git-sync-script/git-auto-sync.sh
-```
-
-### What it does
-
-For each repo in `repos.txt`, the script runs:
-
-1. `git add -A` — stage all changes
-2. `git commit` — auto commit with timestamp (skipped if nothing to commit)
-3. `git pull --rebase --autostash` — pull remote changes
-4. `git push` — push to remote
-
-### File Structure
+## 目录结构
 
 ```
 git-sync-script/
-├── .gitignore
-├── README.md
-├── git-auto-sync.bat          # Windows sync script
-├── git-auto-sync.sh           # Linux/macOS sync script
-├── git-auto-sync-silent.vbs   # VBS wrapper to run .bat silently (Windows)
-├── repos.example.txt          # Example repo list
-├── repos.txt                  # Your repo list (gitignored)
-└── git-auto-sync.log          # Sync log (gitignored)
+├── windows/
+│   ├── git-auto-sync-silent.ps1   # 静默启动同步
+│   ├── git-auto-sync.bat          # 同步核心脚本（无需直接点击）
+│   ├── setup.bat                  # 点击/运行即可注册开机自启 + 立即开始同步
+│   └── stop.bat                   # 点击立即停止同步进程
+├── macos/
+│   ├── git-auto-sync-silent.sh    # macOS 静默启动
+│   ├── git-auto-sync.sh           # macOS 同步核心
+│   ├── setup.sh                   # 一键注册开机自启 + 立即开始同步
+│   └── stop.sh                    # 停止同步进程
+├── linux/
+│   ├── git-auto-sync-silent.sh    # Linux 静默启动
+│   ├── git-auto-sync.sh           # Linux 同步核心
+│   ├── setup.sh                   # 一键注册开机自启 + 立即开始同步
+│   └── stop.sh                    # 停止同步进程
+|
+├── config.txt                     # 同步时间间隔配置
+├── repos.txt                      # 仓库路径列表（首次运行自动生成）
+├── git-auto-sync.log              # 完整日志（保留所有历史）
+└── git-auto-sync-recent.log       # 轻量日志（仅保留最近几轮，方便调试）
 ```
 
-### Maintenance
+## 快速开始
 
-- **Add repo** — add a line to `repos.txt`
-- **Remove repo** — delete the line
-- **Pause a repo** — prepend `#` to the line
-- **Change interval** — Windows: recreate scheduled task with different `/mo`; Linux/macOS: edit crontab
+### GUI操作方式
 
-### Manage scheduled task
-
-**Windows:**
-
-```
-:: Check status
-schtasks /query /tn GitAutoSync
-
-:: Delete task
-schtasks /delete /tn GitAutoSync /f
-
-:: Recreate with 2-minute interval
-schtasks /create /sc minute /mo 2 /tn GitAutoSync /tr "wscript.exe \"C:\path\to\git-sync-script\git-auto-sync-silent.vbs\""
-```
-
-**Linux / macOS:**
+**1. 克隆仓库**
 
 ```bash
-# View current crontab
-crontab -l
-
-# Edit crontab
-crontab -e
-
-# Remove the line to stop
-# Change */10 to */2 for 2-minute interval
+git clone https://github.com/Alidadei/awesome-git-autosync.git
 ```
 
-### Notes
+**2. 一键启动**
 
-- Requires `git` to be in PATH
-- If behind a proxy, configure git proxy: `git config --global http.proxy http://127.0.0.1:PORT`
-- `repos.txt` and `git-auto-sync.log` are gitignored — they stay local
-- **This tool is designed for simple single-branch (main/master) projects only.** It is NOT suitable for projects with multiple branches, merge conflicts, or collaborative workflows requiring careful conflict resolution. If a rebase conflict occurs, the script will fail silently — you will need to resolve it manually.
+双击 `windows/setup.bat`，自动完成：注册开机自启 + 立即开始后台同步。
 
----
+**3. 配置同步仓库**
 
-<a id="中文"></a>
-
-## 中文
-
-一个简单的脚本，用于自动同步多个本地 Git 仓库。支持 **Windows**、**Linux** 和 **macOS**。通过定时任务每隔 N 分钟自动执行 commit、pull 和 push。
-
-> **已在 Windows 上测试通过。** Linux 和 macOS 的脚本尚未测试。
-
-### 快速开始
-
-#### 1. 克隆仓库
+首次同步会自动创建 `repos.txt` 并打开编辑器，每行填写一个仓库的绝对路径，例如：
 
 ```
-git clone https://github.com/Alidadei/git-sync-script.git
+C:\Users\username\my-project
+C:\Users\username\another-repo
 ```
 
-#### 2. 配置仓库列表
+**4. 修改同步间隔**
 
-复制示例文件并填入你的仓库路径：
-
-```bash
-# Windows
-copy repos.example.txt repos.txt
-
-# Linux / macOS
-cp repos.example.txt repos.txt
-```
-
-编辑 `repos.txt`，每行一个仓库路径：
+编辑根目录下的 `config.txt`，修改数字即可，下一轮自动生效，如：
 
 ```
-# Windows
-C:\Users\you\project-a
-C:\Users\you\project-b
-
-# Linux / macOS
-/home/you/project-a
-/Users/you/project-b
-
-# 以 # 开头的行会被跳过
-# C:\Users\you\paused-project
+INTERVAL=10
 ```
 
-#### 3. 手动测试
+**5. 修改轻量日志保存的轮次**
 
-```bash
-# Windows
-git-auto-sync.bat
-
-# Linux / macOS
-chmod +x git-auto-sync.sh
-./git-auto-sync.sh
-```
-
-查看日志：
-
-```bash
-# Windows
-type git-auto-sync.log
-
-# Linux / macOS
-cat git-auto-sync.log
-```
-
-#### 4. 设置定时任务
-
-**Windows**（每 10 分钟，静默后台运行）：
+编辑根目录下的 `config.txt`，修改数字即可，下一轮自动生效，如：
 
 ```
-schtasks /create /sc minute /mo 10 /tn "GitAutoSync" /tr "wscript.exe \"C:\path\to\git-sync-script\git-auto-sync-silent.vbs\""
+KEEP_RECENT=5
 ```
 
-> VBS 包装脚本（`git-auto-sync-silent.vbs`）会在后台静默运行批处理脚本，不会弹出命令行窗口。
 
-**Linux / macOS**（每 10 分钟）：
 
-```bash
-crontab -e
-```
-
-添加以下内容：
-
-```
-*/10 * * * * /path/to/git-sync-script/git-auto-sync.sh
-```
-
-### 工作流程
-
-脚本对 `repos.txt` 中的每个仓库依次执行：
-
-1. `git add -A` — 暂存所有变更
-2. `git commit` — 自动提交（无变更则跳过）
-3. `git pull --rebase --autostash` — 拉取远程更新并变基
-4. `git push` — 推送到远程
-
-### 文件结构
-
-```
-git-sync-script/
-├── .gitignore
-├── README.md
-├── git-auto-sync.bat          # Windows 同步脚本
-├── git-auto-sync.sh           # Linux/macOS 同步脚本
-├── git-auto-sync-silent.vbs   # VBS 包装脚本，静默运行 .bat（Windows）
-├── repos.example.txt          # 示例仓库列表
-├── repos.txt                  # 你的仓库列表（gitignored）
-└── git-auto-sync.log          # 同步日志（gitignored）
-```
-
-### 日常维护
-
-- **添加仓库** — 在 `repos.txt` 中加一行路径
-- **删除仓库** — 删掉对应行
-- **暂停某个仓库** — 行首加 `#`
-- **修改同步间隔** — Windows：删除定时任务后用不同的 `/mo` 值重新创建；Linux/macOS：编辑 crontab
-
-### 定时任务管理
+### 命令行方式
 
 **Windows：**
 
 ```
-:: 查看状态
-schtasks /query /tn GitAutoSync
-
-:: 删除任务
-schtasks /delete /tn GitAutoSync /f
-
-:: 改为每 2 分钟同步一次
-schtasks /create /sc minute /mo 2 /tn GitAutoSync /tr "wscript.exe \"C:\path\to\git-sync-script\git-auto-sync-silent.vbs\""
+git clone https://github.com/Alidadei/awesome-git-autosync.git && cd git-sync-script && windows\setup.bat
 ```
 
-**Linux / macOS：**
+**macOS / Linux：**
 
-```bash
-# 查看当前定时任务
-crontab -l
-
-# 编辑定时任务
-crontab -e
-
-# 删除对应行即可停止
-# 将 */10 改为 */2 即可改为每 2 分钟同步一次
+```
+git clone https://github.com/Alidadei/awesome-git-autosync.git && cd git-sync-script && chmod +x macos/*.sh && macos/setup.sh
 ```
 
-### 注意事项
+**查看日志：**
 
-- 需要系统 PATH 中有 `git` 命令
-- 如果使用代理，需配置 git 代理：`git config --global http.proxy http://127.0.0.1:端口`
-- `repos.txt` 和 `git-auto-sync.log` 已加入 `.gitignore`，不会上传到 GitHub
-- **本工具仅适用于简单的单分支（main/master）项目。** 不适用于多分支开发、需要合并冲突处理或多人协作等复杂场景。如果发生 rebase 冲突，脚本会静默失败，需要手动解决冲突。
+```
+cat git-auto-sync-recent.log
+```
+
+> 项目提供两级日志管理，方便开发者调试：
+> - `git-auto-sync-recent.log` — 轻量日志，仅保留最近 5 轮同步记录，推荐日常查看
+> - `git-auto-sync.log` — 完整日志，保留所有历史记录，用于深度排查
+>
+> 保留轮数可在 `config.txt` 中通过 `KEEP_RECENT=5` 调整。
+
+**暂停某个仓库：** 编辑 `repos.txt`，在行首加 `#` 注释即可暂停，去掉 `#` 恢复。
+
+**停止同步：** 双击 `windows\stop.bat` 即可立即停止同步进程。需要恢复时再双击 `setup.bat`。
+
+## 同步逻辑
+
+每次触发时，对 `repos.txt` 中的每个仓库依次执行：
+
+1. `git add -A`
+2. `git commit`（有变更时）
+3. `git pull --rebase --autostash`
+4. `git push`
+
+## 适用场景
+
+- 个人笔记、文档仓库的自动备份
+- 单分支仓库的多设备自动同步
+- 需要定时自动保存工作进度的场景
+
+## 不适用场景
+
+- 多人多分支协作仓库（可能产生冲突）
+- 需要精细控制 commit 信息的项目
+- 多人同时编辑同一文件的工作流
+
+## 当前状态
+
+> **当前仅 Windows 平台运行通过。** macOS / Linux 脚本已编写，待测试。
+
+## 待开发
+
+多分支项目，自动生成项目分支信息的配置文件，并给用户来选择同步哪个分支
+
+异常情况处理：比如文件过大、上传超时、上传失败时的最长上传时间＆报错信息提醒等
+
