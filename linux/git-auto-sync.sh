@@ -7,7 +7,7 @@ LOG_FILE="$ROOT_DIR/git-auto-sync.log"
 RECENT_LOG="$ROOT_DIR/git-auto-sync-recent.log"
 CONFIG_FILE="$ROOT_DIR/config.txt"
 LOCK_FILE="$ROOT_DIR/git-auto-sync.lock"
-TMP_LOG="$ROOT_DIR/git-auto-sync.tmp"
+TMP_LOG="/tmp/git-auto-sync-$$.tmp"
 
 log() {
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1" >> "$TMP_LOG"
@@ -21,7 +21,7 @@ if [ -f "$LOCK_FILE" ]; then
     fi
 fi
 echo $$ > "$LOCK_FILE"
-trap 'rm -f "$LOCK_FILE"' EXIT
+trap 'rm -f "$LOCK_FILE" "$TMP_LOG" /tmp/git-sync-recent-$$.tmp' EXIT
 
 # Auto-create repos.txt if missing
 if [ ! -f "$REPO_LIST" ]; then
@@ -102,7 +102,7 @@ while true; do
     if [ "$SYNC_COUNT" -gt "$KEEP_RECENT" ]; then
         CUT_LINE=$(grep -n "=== Sync started ===" "$RECENT_LOG" | sed -n "$((KEEP_RECENT+1))p" | cut -d: -f1)
         if [ -n "$CUT_LINE" ]; then
-            head -n $((CUT_LINE-1)) "$RECENT_LOG" > "$RECENT_LOG.tmp" && mv "$RECENT_LOG.tmp" "$RECENT_LOG"
+            head -n $((CUT_LINE-1)) "$RECENT_LOG" > "/tmp/git-sync-recent-$$.tmp" && mv "/tmp/git-sync-recent-$$.tmp" "$RECENT_LOG"
         fi
     fi
 
