@@ -24,6 +24,10 @@ Runs silently, automatically commits, pushes, and pulls on schedule. Once starte
 
   — Edit repo paths in `repos.txt` to manage which repos to sync. Add `#` before a path to pause syncing while keeping the address for easy reactivation!
 
+  — Double-click the `stop` script to immediately stop syncing. Run `setup` again to resume.
+
+  — Running `setup` again automatically stops the old instance and starts a new one — no need to manually `stop` first. Especially handy for restarting after updating the scripts.
+
 - **Cross-platform** — Provides Windows / macOS / Linux scripts (currently only tested on Windows).
 
 - **Log management** — Provides a lightweight log (keeps the last few cycles, configurable) and a full log (keeps all history, may become large and slow to open over time). The recent log defaults to 5 cycles, adjustable via `config.txt`.
@@ -110,12 +114,6 @@ cat git-auto-sync-recent.log
 > - `git-auto-sync.log` — Full log, keeps all history. For deep troubleshooting.
 >
 > Adjust the retained cycles via `KEEP_RECENT=5` in `config.txt`.
-
-**Pause a repo:** Edit `repos.txt`, add `#` at the start of a line to pause, remove `#` to resume.
-
-**Stop sync:** Double-click `windows\stop.bat` to immediately stop the sync process. Run `setup.bat` again to resume.
-
-> Running `setup` again will automatically stop the old instance and start a new one — no need to manually `stop` first. This is especially handy for restarting after updating the scripts.
 
 ## Sync Logic
 
