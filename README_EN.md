@@ -14,30 +14,35 @@ Runs silently, automatically commits, pushes, and pulls on schedule. Once starte
 
 - **Ultra-lightweight** — Core scripts are only ~4KB, zero dependencies, pure native system scripts, near-zero CPU/memory usage.
 
+- **Multi-branch support** — Auto-generates `branches.txt` on first sync, listing all local branches per repo. Defaults to the current branch; uncomment to switch or sync multiple branches simultaneously. Supports short repo names.
+
+- **Cross-platform** — Provides Windows / macOS / Linux scripts (currently only tested on Windows).
+
+- **Log management** — Provides a lightweight log (keeps the last few cycles, configurable) and a full log (keeps all history, may become large and slow to open over time). The recent log defaults to 5 cycles, adjustable via `config/sync-settings.txt`.
+
 - **Easy to maintain**
 
-  After starting sync the maintenance method is freaking easy:
+  This project provides rich user interfaces, yet the operation is very simple:
+
+  In the config folder:
 
   — Edit `INTERVAL` in `sync-settings.txt` to adjust sync interval (minutes), takes effect on the next cycle.
 
   — Edit `KEEP_RECENT` in `sync-settings.txt` to adjust how many cycles the recent log retains, takes effect on the next cycle.
 
   — Edit repo paths in `repos.txt` to manage which repos to sync. Add `#` before a path to pause syncing while keeping the address for easy reactivation!
+  — Edit `branches.txt`: uncomment the desired branch to sync it; supports syncing multiple branches simultaneously.
+
+  In the platform-specific folder:
 
   — Double-click the `stop` script to immediately stop syncing. Run `setup` again to resume.
 
   — Running `setup` again automatically stops the old instance and starts a new one — no need to manually `stop` first. Especially handy for restarting after updating the scripts.
 
-- **Multi-branch support** — Auto-generates `branches.txt` listing all local branches per repo. Defaults to the current branch; uncomment to switch or sync multiple branches simultaneously. Supports short repo names.
-
-- **Cross-platform** — Provides Windows / macOS / Linux scripts (currently only tested on Windows).
-
-- **Log management** — Provides a lightweight log (keeps the last few cycles, configurable) and a full log (keeps all history, may become large and slow to open over time). The recent log defaults to 5 cycles, adjustable via `config/sync-settings.txt`.
-
 ## Directory Structure
 
 ```
-awesome-git-autosync/
+git-sync-script/
 ├── windows/
 │   ├── git-auto-sync-silent.ps1   # Silent sync launcher
 │   ├── git-auto-sync.bat          # Core sync script (no need to click directly)
@@ -94,6 +99,16 @@ Edit `config/sync-settings.txt`. Changes take effect on the next cycle:
 INTERVAL=10
 ```
 
+**5. Change recent log retention**
+
+Edit `config/sync-settings.txt`. Changes take effect on the next cycle:
+
+```
+KEEP_RECENT=5
+```
+
+
+
 ### Command Line
 
 **Windows:**
@@ -132,12 +147,11 @@ For each repo in `config/repos.txt`, the script runs the following for each bran
 
 > `config/branches.txt` is auto-generated on first run. Example:
 > ```
-> # my-project ：main；dev；feature-x
-> my-project main
-> #my-project dev
-> #my-project feature-x
+> # YHL.github.io ：master；astro-v2
+> YHL.github.io master
+> #YHL.github.io astro-v2
 > ```
-> Uncomment `#my-project dev` to sync that branch too.
+> Uncomment `#YHL.github.io astro-v2` to sync that branch too.
 
 ## Use Cases
 
