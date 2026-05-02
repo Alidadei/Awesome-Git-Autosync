@@ -49,4 +49,4 @@ nohup "$SILENT_SCRIPT" > /dev/null 2>&1 &
 disown
 echo "[OK] Sync started in background."
 echo ""
-echo "     To change interval: just edit config.txt, it takes effect on the next cycle."
+echo "     To change interval: just edit sync-settings.txt, it takes effect on the next cycle."

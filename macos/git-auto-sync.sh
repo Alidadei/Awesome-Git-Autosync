@@ -6,7 +6,7 @@ REPO_LIST="$ROOT_DIR/repos.txt"
 BRANCHES_FILE="$ROOT_DIR/branches.txt"
 LOG_FILE="$ROOT_DIR/git-auto-sync.log"
 RECENT_LOG="$ROOT_DIR/git-auto-sync-recent.log"
-CONFIG_FILE="$ROOT_DIR/config.txt"
+CONFIG_FILE="$ROOT_DIR/sync-settings.txt"
 LOCK_FILE="$ROOT_DIR/git-auto-sync.lock"
 TMP_LOG="/tmp/git-auto-sync-$$.tmp"
 

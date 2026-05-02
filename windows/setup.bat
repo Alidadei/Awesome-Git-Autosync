@@ -29,6 +29,6 @@ powershell -NoProfile -Command "Get-WmiObject Win32_Process -Filter \"Name='cmd.
 start "" powershell.exe -WindowStyle Hidden -ExecutionPolicy Bypass -File "%PS1_PATH%"
 echo [OK] Sync started in background.
 echo.
-echo      To change interval: just edit config.txt, it takes effect on the next cycle.
+echo      To change interval: just edit sync-settings.txt, it takes effect on the next cycle.
 echo.
 pause

@@ -9,7 +9,7 @@ set "BRANCHES_FILE=%ROOT_DIR%\branches.txt"
 set "LOG_FILE=%ROOT_DIR%\git-auto-sync.log"
 set "RECENT_LOG=%ROOT_DIR%\git-auto-sync-recent.log"
 set "TMP_LOG=%TEMP%\git-auto-sync.tmp"
-set "CONFIG_FILE=%ROOT_DIR%\config.txt"
+set "CONFIG_FILE=%ROOT_DIR%\sync-settings.txt"
 
 :: Prevent duplicate instances — count all cmd.exe running this script
 powershell -NoProfile -Command "$n=(Get-WmiObject Win32_Process -Filter \"Name='cmd.exe' AND CommandLine LIKE '%%git-auto-sync.bat%%'\" | Measure-Object).Count; if($n -gt 1){exit 1}else{exit 0}"

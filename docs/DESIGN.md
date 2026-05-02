@@ -119,7 +119,7 @@ C:\Users\y\Desktop\single-branch-repo master
 - `branches.txt` 不存在时，行为与当前版本**完全一致**
 - `branches.txt` 中未指定分支的仓库，默认同步 `master`
 - `repos.txt` 格式**不变**
-- `config.txt` 格式**不变**
+- `sync-settings.txt` 格式**不变**
 - 升级后无需任何手动操作，首次同步会自动生成配置文件
 
 ---
@@ -136,7 +136,7 @@ C:\Users\y\Desktop\single-branch-repo master
 ### 不修改的文件
 
 - `repos.txt` — 格式不变
-- `config.txt` — 格式不变
+- `sync-settings.txt` — 格式不变
 - `setup.*` / `stop.*` / `*-silent.*` — 无需改动
 
 ---

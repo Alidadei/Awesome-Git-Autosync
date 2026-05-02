@@ -18,9 +18,9 @@
 
   开启同步后维护方式非常简单：
 
-  — 编辑 `config.txt` 中的INTERVAL值即可调整同步的间隔（分钟），下一次同步自动生效
+  — 编辑 `sync-settings.txt` 中的INTERVAL值即可调整同步的间隔（分钟），下一次同步自动生效
 
-  — 编辑 `config.txt` 中的KEEP_RECENT值即可调整轻量化日志保留的轮次数量，下一次同步自动生效
+  — 编辑 `sync-settings.txt` 中的KEEP_RECENT值即可调整轻量化日志保留的轮次数量，下一次同步自动生效
 
   — 编辑 `repos.txt` 中的仓库路径即可调整同步仓库，路径前加 `#` 可暂停同步该仓库，但又保留仓库的地址以便随时开启同步！
 
@@ -30,7 +30,7 @@
 
 - **跨平台** — 提供 Windows / macOS / Linux 三套脚本（但是当前仅 Windows 平台测试）
 
-- **日志管理** — 提供轻量日志（仅保留最近几轮，具体轮次可自由配置）和完整日志（保留全部历史，时间久了会冗长，打开时可能会卡）两个版本，轻量日志默认保留最近 5 轮同步记录，可在 `config.txt` 中调整。
+- **日志管理** — 提供轻量日志（仅保留最近几轮，具体轮次可自由配置）和完整日志（保留全部历史，时间久了会冗长，打开时可能会卡）两个版本，轻量日志默认保留最近 5 轮同步记录，可在 `sync-settings.txt` 中调整。
 
 ## 目录结构
 
@@ -52,7 +52,7 @@ git-sync-script/
 │   ├── setup.sh                   # 一键注册开机自启 + 立即开始同步
 │   └── stop.sh                    # 停止同步进程
 |
-├── config.txt                     # 同步时间间隔配置
+├── sync-settings.txt                     # 同步时间间隔配置
 ├── repos.txt                      # 仓库路径列表（首次运行自动生成）
 ├── git-auto-sync.log              # 完整日志（保留所有历史）
 └── git-auto-sync-recent.log       # 轻量日志（仅保留最近几轮，方便调试）
@@ -83,7 +83,7 @@ C:\Users\username\another-repo
 
 **4. 修改同步间隔**
 
-编辑根目录下的 `config.txt`，修改数字即可，下一轮自动生效，如：
+编辑根目录下的 `sync-settings.txt`，修改数字即可，下一轮自动生效，如：
 
 ```
 INTERVAL=10
@@ -91,7 +91,7 @@ INTERVAL=10
 
 **5. 修改轻量日志保存的轮次**
 
-编辑根目录下的 `config.txt`，修改数字即可，下一轮自动生效，如：
+编辑根目录下的 `sync-settings.txt`，修改数字即可，下一轮自动生效，如：
 
 ```
 KEEP_RECENT=5
@@ -123,7 +123,7 @@ cat git-auto-sync-recent.log
 > - `git-auto-sync-recent.log` — 轻量日志，仅保留最近 5 轮同步记录，推荐日常查看
 > - `git-auto-sync.log` — 完整日志，保留所有历史记录，用于深度排查
 >
-> 保留轮数可在 `config.txt` 中通过 `KEEP_RECENT=5` 调整。
+> 保留轮数可在 `sync-settings.txt` 中通过 `KEEP_RECENT=5` 调整。
 
 ## 同步逻辑
 

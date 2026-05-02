@@ -18,9 +18,9 @@ Runs silently, automatically commits, pushes, and pulls on schedule. Once starte
 
   After starting sync the maintenance method is freaking easy:
 
-  — Edit `INTERVAL` in `config.txt` to adjust sync interval (minutes), takes effect on the next cycle.
+  — Edit `INTERVAL` in `sync-settings.txt` to adjust sync interval (minutes), takes effect on the next cycle.
 
-  — Edit `KEEP_RECENT` in `config.txt` to adjust how many cycles the recent log retains, takes effect on the next cycle.
+  — Edit `KEEP_RECENT` in `sync-settings.txt` to adjust how many cycles the recent log retains, takes effect on the next cycle.
 
   — Edit repo paths in `repos.txt` to manage which repos to sync. Add `#` before a path to pause syncing while keeping the address for easy reactivation!
 
@@ -30,7 +30,7 @@ Runs silently, automatically commits, pushes, and pulls on schedule. Once starte
 
 - **Cross-platform** — Provides Windows / macOS / Linux scripts (currently only tested on Windows).
 
-- **Log management** — Provides a lightweight log (keeps the last few cycles, configurable) and a full log (keeps all history, may become large and slow to open over time). The recent log defaults to 5 cycles, adjustable via `config.txt`.
+- **Log management** — Provides a lightweight log (keeps the last few cycles, configurable) and a full log (keeps all history, may become large and slow to open over time). The recent log defaults to 5 cycles, adjustable via `sync-settings.txt`.
 
 ## Directory Structure
 
@@ -52,7 +52,7 @@ awesome-git-autosync/
 │   ├── setup.sh                   # Register auto-start + begin syncing
 │   └── stop.sh                    # Stop sync process
 |
-├── config.txt                     # Sync interval configuration
+├── sync-settings.txt                     # Sync interval configuration
 ├── repos.txt                      # Repo path list (auto-generated on first run)
 ├── git-auto-sync.log              # Full log (all history)
 └── git-auto-sync-recent.log       # Recent log (last few cycles, for quick debugging)
@@ -83,7 +83,7 @@ C:\Users\username\another-repo
 
 **4. Change sync interval**
 
-Edit `config.txt` in the root directory. Changes take effect on the next cycle:
+Edit `sync-settings.txt` in the root directory. Changes take effect on the next cycle:
 
 ```
 INTERVAL=10
@@ -113,7 +113,7 @@ cat git-auto-sync-recent.log
 > - `git-auto-sync-recent.log` — Lightweight log, keeps only the last 5 sync cycles. Recommended for daily use.
 > - `git-auto-sync.log` — Full log, keeps all history. For deep troubleshooting.
 >
-> Adjust the retained cycles via `KEEP_RECENT=5` in `config.txt`.
+> Adjust the retained cycles via `KEEP_RECENT=5` in `sync-settings.txt`.
 
 ## Sync Logic
 
