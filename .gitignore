@@ -2,6 +2,5 @@ repos.txt
 git-auto-sync.log
 git-auto-sync-recent.log
 git-auto-sync.lock
-CLAUDE.md
-git-auto-sync.tmp
 *.tmp
+CLAUDE.md
