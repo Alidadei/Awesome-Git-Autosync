@@ -153,6 +153,37 @@ cat logs/git-auto-sync-recent.log
 > ```
 > 取消注释 `#YHL.github.io astro-v2` 即可同时同步该分支。
 
+### 多分支同步操作
+
+首次同步会自动生成 `config/branches.txt`，自动检测每个仓库的本地分支，默认同步当前分支，其他分支以注释形式列出：
+
+```
+# my-project ：main；dev；feature-x
+my-project main
+#my-project dev
+#my-project feature-x
+```
+
+**同步单个分支（切换分支）：** 注释当前行，取消注释目标行
+
+```
+# my-project ：main；dev；feature-x
+#my-project main
+my-project dev
+#my-project feature-x
+```
+
+**同步多个分支：** 取消注释多个分支行
+
+```
+# my-project ：main；dev；feature-x
+my-project main
+my-project dev
+#my-project feature-x
+```
+
+以上配置会依次对 `main` 和 `dev` 分别执行完整的 add → commit → pull → push 流程。
+
 ## 适用场景
 
 - 个人笔记、文档仓库的自动备份

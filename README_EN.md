@@ -153,6 +153,37 @@ For each repo in `config/repos.txt`, the script runs the following for each bran
 > ```
 > Uncomment `#YHL.github.io astro-v2` to sync that branch too.
 
+### Multi-branch Sync
+
+On first sync, `config/branches.txt` is auto-generated with all local branches detected. The current branch is active by default; others are listed as comments:
+
+```
+# my-project ：main；dev；feature-x
+my-project main
+#my-project dev
+#my-project feature-x
+```
+
+**Sync a single branch (switch):** Comment out the current line, uncomment the target
+
+```
+# my-project ：main；dev；feature-x
+#my-project main
+my-project dev
+#my-project feature-x
+```
+
+**Sync multiple branches:** Uncomment multiple branch lines
+
+```
+# my-project ：main；dev；feature-x
+my-project main
+my-project dev
+#my-project feature-x
+```
+
+The above config runs the full add → commit → pull → push cycle for both `main` and `dev` sequentially.
+
 ## Use Cases
 
 - Auto-backup for personal notes and document repos
