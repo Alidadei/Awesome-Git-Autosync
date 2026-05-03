@@ -11,6 +11,10 @@ set "RECENT_LOG=%ROOT_DIR%\logs\git-auto-sync-recent.log"
 set "TMP_LOG=%TEMP%\git-auto-sync.tmp"
 set "CONFIG_FILE=%ROOT_DIR%\config\sync-settings.txt"
 
+:: Ensure directories exist
+if not exist "%ROOT_DIR%\logs" mkdir "%ROOT_DIR%\logs"
+if not exist "%ROOT_DIR%\config" mkdir "%ROOT_DIR%\config"
+
 :: Prevent duplicate instances — count all cmd.exe running this script
 powershell -NoProfile -Command "$n=(Get-WmiObject Win32_Process -Filter \"Name='cmd.exe' AND CommandLine LIKE '%%git-auto-sync.bat%%'\" | Measure-Object).Count; if($n -gt 1){exit 1}else{exit 0}"
 if errorlevel 1 exit /b 0

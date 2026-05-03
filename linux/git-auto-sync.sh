@@ -10,6 +10,9 @@ CONFIG_FILE="$ROOT_DIR/config/sync-settings.txt"
 LOCK_FILE="$ROOT_DIR/git-auto-sync.lock"
 TMP_LOG="/tmp/git-auto-sync-$$.tmp"
 
+# Ensure directories exist
+mkdir -p "$ROOT_DIR/logs" "$ROOT_DIR/config"
+
 log() {
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1" >> "$TMP_LOG"
 }
