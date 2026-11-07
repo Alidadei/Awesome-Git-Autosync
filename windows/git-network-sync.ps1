@@ -109,6 +109,16 @@ function Find-SyncProxyRoute([string[]]$Candidates, [string]$Remote) {
     return $null
 }
 
+function Invoke-SyncPull([string]$Proxy) {
+    # Avoid rewriting local merge history or stashing live files when already current.
+    $result = Invoke-SyncGit -GitArguments @('pull', '--no-rebase', '--ff-only', '--no-autostash') -Proxy $Proxy
+    if ($result.ExitCode -ne 0 -and $result.Text -match '(?i)Not possible to fast-forward|Diverging branches can.t be fast-forwarded') {
+        Write-SyncMessage '  [sync] Histories diverged; rebasing local commits'
+        return Invoke-SyncGit -GitArguments @('pull', '--rebase', '--autostash') -Proxy $Proxy
+    }
+    return $result
+}
+
 function Invoke-GitNetworkSync {
     param([string]$RepoPath, [switch]$OnlyProbe)
     $script:RepositoryPath = [IO.Path]::GetFullPath($RepoPath)
@@ -139,14 +149,14 @@ function Invoke-GitNetworkSync {
     }
     Write-SyncMessage "  [network] $($route.Name) selected for this sync only"
     if ($OnlyProbe) { return 0 }
-    $pull = Invoke-SyncGit -GitArguments @('pull', '--rebase', '--autostash') -Proxy $route.Proxy
+    $pull = Invoke-SyncPull -Proxy $route.Proxy
     if ($pull.Text) { Write-SyncMessage $pull.Text }
     if ($pull.ExitCode -ne 0 -and $route.Name -eq 'DIRECT' -and (Test-SyncNetworkFailure $pull)) {
         $fallback = Find-SyncProxyRoute -Candidates $candidates -Remote $remote
         if ($fallback) {
             $route = $fallback
             Write-SyncMessage '  [network] Retrying pull once through the configured proxy'
-            $pull = Invoke-SyncGit -GitArguments @('pull', '--rebase', '--autostash') -Proxy $route.Proxy
+            $pull = Invoke-SyncPull -Proxy $route.Proxy
             if ($pull.Text) { Write-SyncMessage $pull.Text }
         }
     }

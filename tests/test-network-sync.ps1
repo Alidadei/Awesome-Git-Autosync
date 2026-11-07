@@ -17,6 +17,8 @@ $scenarios = @(
     @{ Name='certificate'; Code=1; Pulls=0; Pushes=0; ProxyCalls=0 },
     @{ Name='rate-limit'; Code=1; Pulls=0; Pushes=0; ProxyCalls=0 },
     @{ Name='pull-conflict'; Code=2; Pulls=1; Pushes=0; ProxyCalls=0 },
+    @{ Name='pull-diverged'; Code=0; Pulls=2; Pushes=1; ProxyCalls=0 },
+    @{ Name='active-file'; Code=2; Pulls=1; Pushes=0; ProxyCalls=0 },
     @{ Name='pull-network'; Code=0; Pulls=2; Pushes=1; ProxyCalls=3 },
     @{ Name='push-ambiguous'; Code=3; Pulls=1; Pushes=1; ProxyCalls=0 },
     @{ Name='probe-only'; Code=0; Pulls=0; Pushes=0; ProxyCalls=0 }
@@ -46,6 +48,8 @@ function Invoke-SyncGit {
         }
         'pull' {
             if ($script:Scenario.Name -eq 'pull-conflict') { $code=1; $message='CONFLICT: Resolve all conflicts manually' }
+            elseif ($script:Scenario.Name -eq 'pull-diverged' -and '--ff-only' -in $GitArguments) { $code=128; $message='fatal: Not possible to fast-forward, aborting.' }
+            elseif ($script:Scenario.Name -eq 'active-file') { $code=1; $message='Your local changes would be overwritten by merge.' }
             elseif ($script:Scenario.Name -eq 'pull-network' -and !$Proxy) { $code=128; $message='fatal: Connection reset by peer' }
         }
         'push' {
