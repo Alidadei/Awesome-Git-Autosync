@@ -93,6 +93,8 @@ git diff --cached --quiet → 无变更 → 日志 "Nothing to commit"
 
 #### 4.6 选择网络路径并拉取远程更新
 
+Windows 对配置了 `git config autosync.mode commit-only` 的仓库仍自动暂存和提交，但在此处结束本轮；拉取和推送由该仓库自己的机制处理。例如采用过滤镜像的项目，可以用 `post-commit` 钩子推送过滤结果，避免把镜像历史拉回本地或直接推送未过滤内容。总脚本只记录本地保存完成，不将异步镜像任务误报为已经推送成功。
+
 Windows 通过 `windows/git-network-sync.ps1` 执行网络操作：
 
 1. 每次同步先用 `git ls-remote` 验证原仓库直连，单次覆盖继承的代理设置。

@@ -257,6 +257,14 @@ if errorlevel 1 (
     call :log "  [%BRANCH%] Nothing to commit"
 )
 
+:: Some repositories publish filtered mirrors through their own post-commit hook.
+for /f "tokens=*" %%M in ('git config --get autosync.mode 2^>nul') do (
+    if /i "%%M"=="commit-only" (
+        call :log "  [%BRANCH%] Local save complete; repository hook manages mirror push"
+        goto :eof
+    )
+)
+
 powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "%SCRIPT_DIR%git-network-sync.ps1" -Repository "%REPO%" >> "%TMP_LOG%" 2>&1
 if errorlevel 1 (
     call :log "  [%BRANCH%] ERROR Network sync failed; see the preceding error"

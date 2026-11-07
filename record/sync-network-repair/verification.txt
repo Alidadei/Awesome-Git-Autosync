@@ -2,3 +2,4 @@
 6 native integration checks passed: Unicode/spaced path, configured branch, locked file, failed commit, unfinished rebase, and preservation of merge history with live uncommitted files.
 Live upstream read-only probe selected DIRECT.
 Proxy fallback was tested with simulated network outcomes; no proxy client was started.
+Native repository-managed mirror checks passed: periodic auto-commit invokes the repository hook once; an unchanged later cycle performs no ordinary network sync or duplicate publication.
