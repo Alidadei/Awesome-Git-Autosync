@@ -141,7 +141,7 @@ call :log "Next sync in %INTERVAL% minutes"
 powershell -NoProfile -Command ^
     "$new=[IO.File]::ReadAllText('%TMP_LOG%',[Text.Encoding]::UTF8);" ^
     "$old=''; if(Test-Path '%LOG_FILE%'){$old=[IO.File]::ReadAllText('%LOG_FILE%',[Text.Encoding]::UTF8)};" ^
-    "[IO.File]::WriteAllText('%LOG_FILE%',([char]239+[char]187+[char]191)+$new+$old,(New-Object Text.UTF8Encoding $false))" >nul 2>&1
+    "[IO.File]::WriteAllText('%LOG_FILE%',$new+$old,(New-Object Text.UTF8Encoding $true))" >nul 2>&1
 
 :: Prepend new log to recent log, then truncate to KEEP_RECENT cycles
 powershell -NoProfile -Command ^
@@ -151,10 +151,11 @@ powershell -NoProfile -Command ^
     "if(Test-Path $rl){$c=$c+[IO.File]::ReadAllText($rl,[Text.Encoding]::UTF8)};" ^
     "$m=[regex]::Matches($c,'\[.*?\] =+ Sync started =+');" ^
     "if($m.Count -gt $k){$c=$c.Substring(0,$m[$k].Index)};" ^
-    "[IO.File]::WriteAllText($rl,([char]239+[char]187+[char]191)+$c,(New-Object Text.UTF8Encoding $false));" ^
+    "[IO.File]::WriteAllText($rl,$c,(New-Object Text.UTF8Encoding $true));" ^
     "Remove-Item '%TMP_LOG%' -Force" >nul 2>&1
 
 :: Sleep and loop
+if /i "%~1"=="--once" exit /b 0
 timeout /t %INTERVAL_S% >nul 2>&1
 goto :main_loop
 
@@ -180,6 +181,17 @@ call :log "Syncing %REPO% ==="
 
 pushd "%REPO%"
 
+:: Preserve repositories with an unfinished Git operation or an active index lock.
+for %%S in (rebase-merge rebase-apply MERGE_HEAD CHERRY_PICK_HEAD REVERT_HEAD index.lock) do (
+    for /f "tokens=*" %%P in ('git rev-parse --git-path %%S 2^>nul') do (
+        if exist "%%P" (
+            call :log "SKIP %REPO% unfinished Git operation or lock: %%S"
+            popd
+            goto :eof
+        )
+    )
+)
+
 :: Collect target branches (PowerShell for UTF-8 safe matching)
 for %%I in ("%REPO%.") do set "REPO_SHORT=%%~nxI"
 set "BRANCH_FOUND=0"
@@ -187,10 +199,11 @@ if exist "%BRANCHES_FILE%" (
     set "BRANCH_MATCH=%TEMP%\git-sync-branch.tmp"
     powershell -NoProfile -Command ^
         "$bl=[IO.File]::ReadAllLines('%BRANCHES_FILE%',[Text.Encoding]::UTF8);" ^
-        "$s='%REPO_SHORT%';$p='%REPO%';" ^
-        "foreach($b in $bl){if($b-match('^'+[regex]::Escape($s)+'\s')-or$b-match('^'+[regex]::Escape($p)+'\s')){$b;break}}" > "!BRANCH_MATCH!" 2>nul
-    for /f "tokens=1,2" %%a in ("!BRANCH_MATCH!") do (
-        if not "%%b"=="" call :do_sync "%%b"&set "BRANCH_FOUND=1"
+        "$s=$env:REPO_SHORT;$p=$env:REPO;" ^
+        "foreach($b in $bl){if($b-match('^'+[regex]::Escape($s)+'\s+(.+)$')-or$b-match('^'+[regex]::Escape($p)+'\s+(.+)$')){$Matches[1].Trim()}}" > "!BRANCH_MATCH!" 2>nul
+    for /f "usebackq tokens=*" %%b in ("!BRANCH_MATCH!") do (
+        call :do_sync "%%b"
+        set "BRANCH_FOUND=1"
     )
     del "!BRANCH_MATCH!" 2>nul
 )
@@ -209,6 +222,7 @@ goto :eof
 set "BRANCH=%~1"
 
 :: Branch checkout
+set "CURRENT_BRANCH="
 for /f "tokens=*" %%b in ('git symbolic-ref --short HEAD 2^>nul') do set "CURRENT_BRANCH=%%b"
 if not "%BRANCH%"=="%CURRENT_BRANCH%" (
     git checkout "%BRANCH%" >> "%TMP_LOG%" 2>&1
@@ -222,20 +236,30 @@ if not "%BRANCH%"=="%CURRENT_BRANCH%" (
 )
 
 git add -A 2>> "%TMP_LOG%"
+if errorlevel 1 (
+    call :log "  [%BRANCH%] ERROR Staging failed; sync skipped"
+    goto :eof
+)
 
-git diff --cached --quiet 2>nul
+git diff --cached --quiet 2>> "%TMP_LOG%"
+if errorlevel 2 (
+    call :log "  [%BRANCH%] ERROR Unable to inspect staged changes; sync skipped"
+    goto :eof
+)
 if errorlevel 1 (
     git commit -m "auto sync %date:/=-% %time:~0,5%" >> "%TMP_LOG%" 2>&1
+    if errorlevel 1 (
+        call :log "  [%BRANCH%] ERROR Commit failed; sync skipped"
+        goto :eof
+    )
     call :log "  [%BRANCH%] Committed"
 ) else (
     call :log "  [%BRANCH%] Nothing to commit"
 )
 
-git pull --rebase --autostash >> "%TMP_LOG%" 2>&1
-
-git push >> "%TMP_LOG%" 2>&1
+powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "%SCRIPT_DIR%git-network-sync.ps1" -Repository "%REPO%" >> "%TMP_LOG%" 2>&1
 if errorlevel 1 (
-    call :log "  [%BRANCH%] ERROR Push failed"
+    call :log "  [%BRANCH%] ERROR Network sync failed; see the preceding error"
 ) else (
     call :log "  [%BRANCH%] Pushed"
 )

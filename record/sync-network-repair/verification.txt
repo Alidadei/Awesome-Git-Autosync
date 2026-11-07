@@ -1,0 +1,4 @@
+﻿11 network behavior checks passed on Windows PowerShell 5.1.
+5 native integration checks passed: Unicode/spaced path, configured branch, locked file, failed commit, unfinished rebase.
+Live upstream read-only probe selected DIRECT.
+Proxy fallback was tested with simulated network outcomes; no proxy client was started.

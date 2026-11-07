@@ -2,7 +2,7 @@
 
 ## 概述
 
-Git Auto Sync 以固定间隔（默认 2 分钟）循环执行，每轮对 `repos.txt` 中所有未注释的仓库逐一执行同步操作。
+Git Auto Sync 以固定间隔（默认 10 分钟）循环执行，每轮对 `repos.txt` 中所有未注释的仓库逐一执行同步操作。
 
 ---
 
@@ -55,7 +55,8 @@ Git Auto Sync 以固定间隔（默认 2 分钟）循环执行，每轮对 `repo
 
 ```
 路径为空或以 # 开头 → 跳过
-路径下无 .git 目录 → 记录日志 "SKIP not a git repo"，跳过
+路径下无 .git 目录或文件 → 记录日志 "SKIP not a git repo"，跳过
+Windows：存在未完成的 rebase、merge、cherry-pick、revert 或 index.lock → 记录具体原因并跳过，保留现场
 ```
 
 #### 4.2 确定目标分支
@@ -79,7 +80,7 @@ Git Auto Sync 以固定间隔（默认 2 分钟）循环执行，每轮对 `repo
 git add -A
 ```
 
-将所有变更（新增、修改、删除）加入暂存区。
+将所有变更（新增、修改、删除）加入暂存区。Windows 遇到文件占用、权限等暂存错误时，记录 `ERROR Staging failed` 并停止该分支的后续操作，不再误报 `Nothing to commit`。
 
 #### 4.5 提交
 
@@ -88,9 +89,19 @@ git diff --cached --quiet → 无变更 → 日志 "Nothing to commit"
 有变更 → git commit -m "auto sync <日期> <时间>"
 ```
 
-提交消息格式示例：`auto sync 2026-05-04 14:30`
+提交消息格式示例：`auto sync 2026-05-04 14:30`。Windows 只有在提交成功后才记录 `Committed`；检查暂存区或提交失败时，停止该分支的后续操作。
 
-#### 4.6 拉取远程更新
+#### 4.6 选择网络路径并拉取远程更新
+
+Windows 通过 `windows/git-network-sync.ps1` 执行网络操作：
+
+1. 每次同步先用 `git ls-remote` 验证原仓库直连，单次覆盖继承的代理设置。
+2. 直连遇到网络故障时，读取现有 Git 或进程环境中的代理配置；本地代理端口未监听时直接跳过。
+3. 代理读取原仓库成功后，本次拉取和推送才使用该代理。
+4. 认证、权限、资源不存在、限流和证书验证错误直接报错，不通过换代理掩盖错误。
+5. 拉取遇到网络故障时，可向已配置且验证可用的代理回退一次；拉取冲突或最终失败后，停止推送。
+
+代理通过 Git 单次 `-c` 参数和子进程环境传递；不修改系统代理、注册表、用户环境变量或全局 Git 配置，也不启动代理客户端。探测最长 15 秒，单次拉取或推送最长 180 秒；超时只终止本次 Git 进程及其子进程。下一轮重新判断路径。
 
 ```
 git pull --rebase --autostash
@@ -106,7 +117,7 @@ git push
 ```
 
 - 成功 → 日志 "Pushed"
-- 失败 → 日志 "ERROR Push failed"
+- 失败 → 日志 "ERROR Push failed"。Windows 对网络错误先尝试读取远端状态，不立即重复上传；下一轮先拉取，再决定是否推送
 
 ### 5. 日志处理
 
@@ -123,7 +134,7 @@ timeout /t <INTERVAL * 60>    (Windows)
 sleep <INTERVAL * 60>         (Linux/macOS)
 ```
 
-然后回到步骤 1 开始下一轮。
+然后回到步骤 1 开始下一轮。Windows 支持 `windows\git-auto-sync.bat --once`，执行一轮后退出；验证时应先停止原循环，避免双开。
 
 ---
 
