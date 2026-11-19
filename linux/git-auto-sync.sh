@@ -197,6 +197,18 @@ while true; do
                 log "  [$TARGET_BRANCH] WARN autosync-hold older than 4h, ignored"
             fi
 
+            # Stability gate: same change set as the previous cycle means nobody is
+            # still editing. Ignored dirs never enter the comparison.
+            status_old="$repo/.git/autosync-status"
+            status_new="$status_old.new"
+            git status --porcelain -uall > "$status_new" 2>/dev/null
+            if ! cmp -s "$status_old" "$status_new"; then
+                mv -f "$status_new" "$status_old" 2>/dev/null
+                log "  [$TARGET_BRANCH] SKIP change set still moving (waiting for two identical cycles)"
+                continue
+            fi
+            rm -f "$status_new"
+
             git add -A 2>> "$TMP_LOG"
 
             if ! git diff --cached --quiet 2>/dev/null; then

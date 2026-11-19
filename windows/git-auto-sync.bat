@@ -204,6 +204,22 @@ if "!HOLD_STATE!"=="hold" (
 )
 if "!HOLD_STATE!"=="stale" call :log "WARN %REPO% autosync-hold is older than 4h, ignored"
 
+:: Stability gate: commit only when the pending change set is identical to the
+:: previous cycle, i.e. nobody is still editing. Compares `git status --porcelain`,
+:: so ignored dirs (node_modules) never slow the one-minute loop down.
+:: An agent that pauses mid-edit just delays the commit by one cycle; nothing is lost.
+set "STATUS_OLD=%REPO%\.git\autosync-status"
+set "STATUS_NEW=%TEMP%\git-sync-status.tmp"
+git status --porcelain -uall > "!STATUS_NEW!" 2>nul
+fc /b "!STATUS_OLD!" "!STATUS_NEW!" >nul 2>&1
+if errorlevel 1 (
+    move /y "!STATUS_NEW!" "!STATUS_OLD!" >nul 2>&1
+    call :log "SKIP %REPO% change set still moving (waiting for two identical cycles)"
+    popd
+    goto :eof
+)
+del "!STATUS_NEW!" 2>nul
+
 :: Collect target branches (PowerShell for UTF-8 safe matching)
 for %%I in ("%REPO%.") do set "REPO_SHORT=%%~nxI"
 set "BRANCH_FOUND=0"
