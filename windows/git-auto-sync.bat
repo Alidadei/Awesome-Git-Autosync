@@ -192,6 +192,18 @@ for %%S in (rebase-merge rebase-apply MERGE_HEAD CHERRY_PICK_HEAD REVERT_HEAD in
     )
 )
 
+:: Pause marker: an agent editing code drops .git\autosync-hold so the 1-minute timer
+:: cannot commit half-finished work. Skipped only when the marker is fresh (< 4 hours);
+:: stale marker = agent crashed, resume syncing rather than stalling backups forever.
+set "HOLD_STATE="
+for /f "tokens=*" %%H in ('powershell -NoProfile -Command "if(Test-Path '%REPO%\.git\autosync-hold'){$h=(Get-Item -Force '%REPO%\.git\autosync-hold').LastWriteTime; if(((Get-Date)-$h).TotalHours -lt 4){'hold'}else{'stale'}}" 2^>nul') do set "HOLD_STATE=%%H"
+if "!HOLD_STATE!"=="hold" (
+    call :log "SKIP %REPO% autosync-hold is fresh (agent is editing; remove it when done)"
+    popd
+    goto :eof
+)
+if "!HOLD_STATE!"=="stale" call :log "WARN %REPO% autosync-hold is older than 4h, ignored"
+
 :: Collect target branches (PowerShell for UTF-8 safe matching)
 for %%I in ("%REPO%.") do set "REPO_SHORT=%%~nxI"
 set "BRANCH_FOUND=0"

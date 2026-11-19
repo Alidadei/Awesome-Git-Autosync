@@ -175,6 +175,18 @@ while true; do
                 log "  [$TARGET_BRANCH]"
             fi
 
+            # Pause marker written by an agent editing code; stale (>4h) means the agent
+            # died, so resume syncing instead of stalling backups forever.
+            hold="$repo/.git/autosync-hold"
+            if [ -e "$hold" ]; then
+                age=$(( $(date +%s) - $(date -r "$hold" +%s 2>/dev/null || echo 0) ))
+                if [ "$age" -lt 14400 ]; then
+                    log "  [$TARGET_BRANCH] SKIP autosync-hold is fresh (agent is editing)"
+                    continue
+                fi
+                log "  [$TARGET_BRANCH] WARN autosync-hold older than 4h, ignored"
+            fi
+
             git add -A 2>> "$TMP_LOG"
 
             if ! git diff --cached --quiet 2>/dev/null; then
